@@ -1,0 +1,59 @@
+import * as React from "react";
+import { Routes, Route } from "react-router-dom";
+import LandingPage from "./pages/LandingPage";
+import MemberLogin from "./components/MemberComponents/MemberAuth";
+import LibrarianLogin from "./components/LibrarianComponents/LibrarianLogin";
+import AdminLogin from "./components/AdminComponents/AdminLogin";
+import Register from "./components/MemberComponents/Register";
+import LibrarianDashboard from "./components/LibrarianComponents/LibrarianDashboard";
+import MemberDashboard from "./components/MemberComponents/MemberDashboard";
+
+import AdminDashboardLayout from "./components/AdminComponents/AdminDashboardLayout";
+import AdminOverview from "./components/AdminComponents/AdminOverview";
+import ManageLibrarians from "./components/AdminComponents/ManageLibrarians";
+import ManageBooks from "./components/AdminComponents/ManageBooks";
+import ManageMembers from "./components/AdminComponents/ManageMembers";
+
+import BorrowRecords from "./components/AdminComponents/BorrowRecords";
+import ManageLibBooks from "./components/LibrarianComponents/ManageLibBooks";
+import BorrowLibRecords from "./components/LibrarianComponents/BorrowLibRecords";
+import MemberSignup from "./components/MemberComponents/MemberSignup";
+import OverdueBooks from "./components/LibrarianComponents/OverdueBooks";
+
+
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/librarian/login" element={<LibrarianLogin />} />
+      <Route path="/member/login" element={<MemberLogin />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/librarian/dashboard" element={<LibrarianDashboard />} />
+      <Route path="/member/dashboard/*" element={<MemberDashboard />} />
+      <Route path="/member/signup" element={<MemberSignup />} />
+
+     
+     <Route path="/admin/*" element={<AdminDashboardLayout />}>
+  <Route index element={<AdminOverview />} />
+  <Route path="dashboard" element={<AdminOverview />} />
+  <Route path="dashboard/librarians" element={<ManageLibrarians />} />
+  <Route path="dashboard/books" element={<ManageBooks/>}/>
+  <Route path="dashboard/members" element={<ManageMembers/>}/>
+  <Route path="dashboard/history" element={<BorrowRecords/>}/>
+  </Route>
+
+   <Route path="/librarian/dashboard" element={<LibrarianDashboard />}>
+        <Route path="books" element={<ManageLibBooks />} />
+        <Route path="borrow-records" element={<BorrowLibRecords />} />
+        <Route index element={<ManageLibBooks />} /> 
+        <Route path="overdue" element={<OverdueBooks/>}/>
+      </Route>
+
+
+       
+     
+    </Routes>
+  );
+}
