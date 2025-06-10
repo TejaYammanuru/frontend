@@ -50,6 +50,7 @@ const ManageBooks = () => {
   const [formData, setFormData] = useState({
     title: "",
     author: "",
+    description: "",
     genre: "",
     publication_date: "",
     total_copies: 0,
@@ -97,6 +98,7 @@ const ManageBooks = () => {
     setFormData({
       title: "",
       author: "",
+      description: "",
       genre: "",
       publication_date: "",
       total_copies: 0,
@@ -116,6 +118,7 @@ const ManageBooks = () => {
     setFormData({
       title: book.title,
       author: book.author,
+      description: book.description || "",
       genre: book.genre,
       publication_date: formattedDate,
       total_copies: book.total_copies,
@@ -154,6 +157,7 @@ const ManageBooks = () => {
     setFormData({
       title: "",
       author: "",
+      description: "",
       genre: "",
       publication_date: "",
       total_copies: 0,
@@ -324,8 +328,8 @@ const ManageBooks = () => {
           </Box>
         ),
     },
-    { field: "title", headerName: "Title", flex: 1, minWidth: 200 },
-    { field: "author", headerName: "Author", flex: 1, minWidth: 150 },
+    { field: "title", headerName: "Title", flex: 1, minWidth: 100 },
+    { field: "author", headerName: "Author", flex: 1, minWidth: 100 },
     { field: "genre", headerName: "Genre", flex: 0.8, minWidth: 120 },
     {
       field: "publication_date",
@@ -479,6 +483,16 @@ const ManageBooks = () => {
                   required
                 />
                 <TextField
+                  label="Description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleFormChange}
+                  fullWidth
+                  multiline
+                  rows={3}
+                  placeholder="Enter book description..."
+                />
+                <TextField
                   select
                   label="Genre"
                   name="genre"
@@ -581,7 +595,7 @@ const ManageBooks = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar */}
+     
       <Snackbar
         open={snackbar.open}
         autoHideDuration={4000}

@@ -155,6 +155,30 @@ const Book = () => {
         />
       </Box>
 
+      {/* Description Section */}
+      {book.description && (
+        <>
+          <Divider sx={{ my: 4, borderColor: "#e5e7eb" }} />
+          
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="h6" sx={{ color: "#374151", fontWeight: 600, mb: 2 }}>
+              Description
+            </Typography>
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                color: "#4b5563", 
+                lineHeight: 1.6,
+                fontSize: "1rem",
+                textAlign: "justify"
+              }}
+            >
+              {book.description}
+            </Typography>
+          </Box>
+        </>
+      )}
+
       <Divider sx={{ my: 4, borderColor: "#e5e7eb" }} />
 
      
