@@ -188,6 +188,24 @@ const Book = () => {
               {book.copies_available} of {book.total_copies} copies available
             </Typography>
           </Box>
+
+          {/* Overdue Days Section */}
+          {book.overdue_days !== undefined && (
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              <Typography sx={{ color: "#6b7280", fontWeight: 500, minWidth: 140 }}>
+                Overdue Status:
+              </Typography>
+              <Typography sx={{
+                color: book.overdue_days > 0 ? "#dc2626" : "#059669",
+                fontWeight: 600,
+              }}>
+                {book.overdue_days > 0 
+                  ? `${book.overdue_days} days overdue`
+                  : "Not overdue"
+                }
+              </Typography>
+            </Box>
+          )}
         </Box>
       </Box>
 

@@ -17,9 +17,10 @@ import {
   Card,
   CardMedia,
   MenuItem,
+  Chip,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
-import { Edit, Delete, Add, Search, Clear, CloudUpload } from "@mui/icons-material";
+import { Edit, Delete, Add, Search, Clear, CloudUpload, Schedule } from "@mui/icons-material";
 import axios from "axios";
 import { getGridNumericOperators } from '@mui/x-data-grid';
 
@@ -28,17 +29,17 @@ const PRIMARY_HOVER = "#364494";
 
 const ManageBooks = () => {
   const genreOptions = [
-  "Fiction",
-  "Non-Fiction",
-  "Science Fiction",
-  "Fantasy",
-  "Mystery",
-  "Biography",
-  "Romance",
-  "Horror",
-  "Self-Help",
-  "History",
-];
+    "Fiction",
+    "Non-Fiction",
+    "Science Fiction",
+    "Fantasy",
+    "Mystery",
+    "Biography",
+    "Romance",
+    "Horror",
+    "Self-Help",
+    "History",
+  ];
 
   const [books, setBooks] = useState([]);
   const [filteredBooks, setFilteredBooks] = useState([]);
@@ -53,6 +54,7 @@ const ManageBooks = () => {
     publication_date: "",
     total_copies: 0,
     copies_available: 0,
+    overdue_days: 14,
     image_url: "",
   });
   const [imagePreview, setImagePreview] = useState("");
@@ -99,6 +101,7 @@ const ManageBooks = () => {
       publication_date: "",
       total_copies: 0,
       copies_available: 0,
+      overdue_days: 14,
       image_url: "",
     });
     setImagePreview("");
@@ -117,6 +120,7 @@ const ManageBooks = () => {
       publication_date: formattedDate,
       total_copies: book.total_copies,
       copies_available: book.copies_available,
+      overdue_days: book.overdue_days || 14,
       image_url: book.image_url,
     });
     setImagePreview(book.image_url ? `http://localhost:8080${book.image_url}` : "");
@@ -154,6 +158,7 @@ const ManageBooks = () => {
       publication_date: "",
       total_copies: 0,
       copies_available: 0,
+      overdue_days: 14,
       image_url: "",
     });
   };
@@ -205,6 +210,10 @@ const ManageBooks = () => {
       setSnackbar({ open: true, message: "Total copies cannot be negative", severity: "error" });
       return false;
     }
+    if (formData.overdue_days <= 0) {
+      setSnackbar({ open: true, message: "Overdue days must be greater than 0", severity: "error" });
+      return false;
+    }
 
     return true;
   };
@@ -227,6 +236,7 @@ const ManageBooks = () => {
         publication_date: formData.publication_date || new Date().toISOString().slice(0, 10),
         total_copies: Number(formData.total_copies),
         copies_available: Number(formData.total_copies),
+        overdue_days: Number(formData.overdue_days),
       };
 
       if (editingBook) {
@@ -248,6 +258,27 @@ const ManageBooks = () => {
     }
   };
 
+  const getOverdueDaysChip = (overdueDays) => {
+    let color = "success";
+    let label = `${overdueDays} days`;
+    
+    if (overdueDays <= 7) {
+      color = "error";
+    } else if (overdueDays <= 14) {
+      color = "warning";
+    }
+    
+    return (
+      <Chip
+        icon={<Schedule />}
+        label={label}
+        color={color}
+        size="small"
+        variant="outlined"
+      />
+    );
+  };
+
   const columns = [
     { field: "id", headerName: "ID", width: 70 },
     {
@@ -255,8 +286,8 @@ const ManageBooks = () => {
       headerName: "Image",
       width: 100,
       sortable: false,
-    filterable: false,
-    disableColumnMenu: true, 
+      filterable: false,
+      disableColumnMenu: true, 
       renderCell: (params) =>
         params.value ? (
           <img
@@ -306,14 +337,21 @@ const ManageBooks = () => {
         return date.toLocaleDateString();
       },
     },
-    { field: "total_copies", headerName: "Total", width: 80,filterOperators: getGridNumericOperators() },
-    { field: "copies_available", headerName: "Available", width: 90 ,filterOperators: getGridNumericOperators()},
+    { field: "total_copies", headerName: "Total", width: 80, filterOperators: getGridNumericOperators() },
+    { field: "copies_available", headerName: "Available", width: 90, filterOperators: getGridNumericOperators() },
+    {
+      field: "overdue_days",
+      headerName: "Return Period",
+      width: 130,
+      filterOperators: getGridNumericOperators(),
+      renderCell: (params) => getOverdueDaysChip(params.value || 14),
+    },
     {
       field: "actions",
       headerName: "Actions",
       sortable: false,
-    filterable: false,
-    disableColumnMenu: true, 
+      filterable: false,
+      disableColumnMenu: true, 
       renderCell: (params) => (
         <Box>
           <Tooltip title="Edit Book">
@@ -441,21 +479,20 @@ const ManageBooks = () => {
                   required
                 />
                 <TextField
-  select
-  label="Genre"
-  name="genre"
-  value={formData.genre}
-  onChange={handleFormChange}
-  fullWidth
-  required
->
-  {genreOptions.map((option) => (
-    <MenuItem key={option} value={option}>
-      {option}
-    </MenuItem>
-  ))}
-</TextField>
-
+                  select
+                  label="Genre"
+                  name="genre"
+                  value={formData.genre}
+                  onChange={handleFormChange}
+                  fullWidth
+                  required
+                >
+                  {genreOptions.map((option) => (
+                    <MenuItem key={option} value={option}>
+                      {option}
+                    </MenuItem>
+                  ))}
+                </TextField>
                 <TextField
                   label="Publication Date"
                   name="publication_date"
@@ -473,6 +510,17 @@ const ManageBooks = () => {
                   onChange={handleFormChange}
                   fullWidth
                   inputProps={{ min: 0 }}
+                />
+                <TextField
+                  label="Return Period (Days)"
+                  name="overdue_days"
+                  type="number"
+                  value={formData.overdue_days}
+                  onChange={handleFormChange}
+                  fullWidth
+                  required
+                  inputProps={{ min: 1 }}
+                  helperText="Number of days members have to return the book before it becomes overdue"
                 />
               </Box>
             </Grid>
