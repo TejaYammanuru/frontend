@@ -21,11 +21,14 @@ import {
 import {
   MenuBook,
   Logout,
-  Home,
   Menu as MenuIcon,
   ChevronLeft,
   Person,
   History,
+  AssignmentTurnedIn,
+  AssignmentReturn,
+  LibraryBooks,
+  PublishedWithChanges,
 } from "@mui/icons-material";
 import { useNavigate, useLocation, Outlet } from "react-router-dom";
 
@@ -49,10 +52,31 @@ const LibrarianDashboard = () => {
   };
 
   const menuItems = [
-    // { text: "Dashboard", icon: <Home />, path: "/librarian/dashboard" },
-    { text: "Manage Books", icon: <MenuBook />, path: "/librarian/dashboard/books" },
-    { text: "Borrow Records", icon: <History />, path: "/librarian/dashboard/borrow-records" },
-     { text: "Overdue books", icon: <History />, path: "/librarian/dashboard/overdue" },
+    {
+      text: "Manage Books",
+      icon: <LibraryBooks />,
+      path: "/librarian/dashboard/books",
+    },
+    {
+      text: "Borrow Records",
+      icon: <History />,
+      path: "/librarian/dashboard/borrow-records",
+    },
+    {
+      text: "Overdue Books",
+      icon: <AssignmentTurnedIn />,
+      path: "/librarian/dashboard/overdue",
+    },
+    {
+      text: "Borrow Requests",
+      icon: <PublishedWithChanges />,
+      path: "/librarian/dashboard/borrow-requests",
+    },
+    {
+      text: "Return Ack",
+      icon: <AssignmentReturn />,
+      path: "/librarian/dashboard/return",
+    },
   ];
 
   const isActiveRoute = (path) => {

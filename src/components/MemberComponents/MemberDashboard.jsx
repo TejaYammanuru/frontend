@@ -43,7 +43,9 @@ import BorrowingHistory from "./BorrowingHistory";
 import Notifications from "./Notifications";
 import ReturnBook from "./ReturnBook";
 import MemberSignup from "./MemberSignup";
+import MyBorrowRequests from "./MyBorrowRequests";
 import axios from "axios";
+import ReturnBooks from "./ReturnBooks"
 
 const drawerWidth = 240;
 const miniDrawerWidth = 64;
@@ -165,6 +167,7 @@ const MemberDashboard = () => {
   const menuItems = [
     { text: "Dashboard", icon: <Home />, path: "/member/dashboard" },
     { text: "View/Search Books", icon: <MenuBook />, path: "/member/dashboard/books" },
+     { text: "My Borrow Requests", icon: <MenuBook />, path: "/member/dashboard/requests" },
     { text: "Notifications", icon: <NotificationsNone />, path: "/member/dashboard/notifications" },
     { text: "Borrowing History", icon: <History />, path: "/member/dashboard/history" },
     { text: "Return book", icon: <AssignmentReturn />, path: "/member/dashboard/return" },
@@ -358,7 +361,8 @@ const MemberDashboard = () => {
           <Route path="/books/:bookId" element={<Book />} />
           <Route path="/history" element={<BorrowingHistory />} />
           <Route path="/notifications" element={<Notifications />} />
-          <Route path="/return" element={<ReturnBook />} />
+          <Route path="/return" element={<ReturnBooks />} />
+          <Route path="/requests" element={<MyBorrowRequests/>}/>
         </Routes>
       </Box>
 

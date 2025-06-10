@@ -19,6 +19,8 @@ import ManageLibBooks from "./components/LibrarianComponents/ManageLibBooks";
 import BorrowLibRecords from "./components/LibrarianComponents/BorrowLibRecords";
 import MemberSignup from "./components/MemberComponents/MemberSignup";
 import OverdueBooks from "./components/LibrarianComponents/OverdueBooks";
+import BorrowRequests from "./components/LibrarianComponents/BorrowRequests";
+import ReturnAcknowledgement from "./components/LibrarianComponents/ReturnAcknowledgement";
 
 
 
@@ -49,6 +51,8 @@ export default function App() {
         <Route path="borrow-records" element={<BorrowLibRecords />} />
         <Route index element={<ManageLibBooks />} /> 
         <Route path="overdue" element={<OverdueBooks/>}/>
+        <Route path="borrow-requests" element={<BorrowRequests/>}/>
+        <Route path="return" element={<ReturnAcknowledgement/>}/>
       </Route>
 
 

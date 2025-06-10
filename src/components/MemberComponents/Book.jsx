@@ -15,8 +15,8 @@ const Book = () => {
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [borrowMessage, setBorrowMessage] = useState({ type: "", text: "" });
-  const [isBorrowed, setIsBorrowed] = useState(false);
+  const [requestMessage, setRequestMessage] = useState({ type: "", text: "" });
+  const [isRequested, setIsRequested] = useState(false);
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -25,6 +25,20 @@ const Book = () => {
         if (!response.ok) throw new Error("Failed to fetch book data");
         const data = await response.json();
         setBook(data);
+        
+        // Check if user has already requested this book
+        const token = localStorage.getItem("token");
+        if (token) {
+          const checkResponse = await fetch(`http://localhost:8080/borrow/check-request/${bookId}`, {
+            headers: {
+              Authorization: `${token}`,
+            },
+          });
+          if (checkResponse.ok) {
+            const checkData = await checkResponse.json();
+            setIsRequested(checkData.hasRequested || false);
+          }
+        }
       } catch (err) {
         setError(err.message);
       } finally {
@@ -34,25 +48,24 @@ const Book = () => {
     fetchBook();
   }, [bookId]);
 
-  
   useEffect(() => {
-    if (borrowMessage.text) {
+    if (requestMessage.text) {
       const timer = setTimeout(() => {
-        setBorrowMessage({ type: "", text: "" });
+        setRequestMessage({ type: "", text: "" });
       }, 5000);
       return () => clearTimeout(timer);
     }
-  }, [borrowMessage]);
+  }, [requestMessage]);
 
-  const handleBorrow = async () => {
+  const handleRequest = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
-      setBorrowMessage({ type: "error", text: "You must be logged in to borrow a book." });
+      setRequestMessage({ type: "error", text: "You must be logged in to request a book." });
       return;
     }
 
     try {
-      const response = await fetch(`http://localhost:8080/borrow/`, {
+      const response = await fetch(`http://localhost:8080/borrow/request`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -64,17 +77,16 @@ const Book = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        setBorrowMessage({ type: "error", text: data.error || "Borrowing failed." });
+        setRequestMessage({ type: "error", text: data.error || "Request failed." });
       } else {
-        setBorrowMessage({ type: "success", text: data.message });
-        setIsBorrowed(true);
-        setBook((prev) => ({
-          ...prev,
-          copies_available: prev.copies_available - 1,
-        }));
+        setRequestMessage({ 
+          type: "success", 
+          text: data.message || "Book request submitted successfully"
+        });
+        setIsRequested(true);
       }
     } catch (err) {
-      setBorrowMessage({ type: "error", text: "Something went wrong." });
+      setRequestMessage({ type: "error", text: "Something went wrong." });
     }
   };
 
@@ -113,7 +125,6 @@ const Book = () => {
         />
       </Box>
 
-      
       <Typography
         variant="h3"
         sx={{
@@ -141,7 +152,6 @@ const Book = () => {
         by {book.author}
       </Typography>
 
-     
       <Box sx={{ textAlign: "center", mb: 4 }}>
         <Chip
           label={book.genre}
@@ -181,7 +191,6 @@ const Book = () => {
 
       <Divider sx={{ my: 4, borderColor: "#e5e7eb" }} />
 
-     
       <Box sx={{ mb: 4 }}>
         <Typography variant="h6" sx={{ color: "#374151", fontWeight: 600, mb: 3 }}>
           Book Details
@@ -212,47 +221,27 @@ const Book = () => {
               {book.copies_available} of {book.total_copies} copies available
             </Typography>
           </Box>
-
-          {/* Overdue Days Section */}
-          {book.overdue_days !== undefined && (
-            <Box sx={{ display: "flex", alignItems: "center" }}>
-              <Typography sx={{ color: "#6b7280", fontWeight: 500, minWidth: 140 }}>
-                Overdue Status:
-              </Typography>
-              <Typography sx={{
-                color: book.overdue_days > 0 ? "#dc2626" : "#059669",
-                fontWeight: 600,
-              }}>
-                {book.overdue_days > 0 
-                  ? `${book.overdue_days} days overdue`
-                  : "Not overdue"
-                }
-              </Typography>
-            </Box>
-          )}
         </Box>
       </Box>
 
       <Divider sx={{ my: 4, borderColor: "#e5e7eb" }} />
 
-      
-      {borrowMessage.text && (
+      {requestMessage.text && (
         <Box sx={{ mb: 3 }}>
-          <Alert severity={borrowMessage.type} sx={{ borderRadius: 2 }}>
-            {borrowMessage.text}
+          <Alert severity={requestMessage.type} sx={{ borderRadius: 2 }}>
+            {requestMessage.text}
           </Alert>
         </Box>
       )}
 
-     
       <Box sx={{ textAlign: "center", mt: 4 }}>
         <Button
           variant="contained"
           size="large"
-          onClick={handleBorrow}
-          disabled={book.copies_available === 0 || isBorrowed}
+          onClick={handleRequest}
+          disabled={isRequested}
           sx={{
-            backgroundColor: (book.copies_available > 0 && !isBorrowed) ? "#2563eb" : "#9ca3af",
+            backgroundColor: !isRequested ? "#2563eb" : "#9ca3af",
             color: "white",
             fontWeight: 600,
             fontSize: "1.1rem",
@@ -262,16 +251,14 @@ const Book = () => {
             textTransform: "none",
             boxShadow: "0 4px 12px rgba(37, 99, 235, 0.3)",
             "&:hover": {
-              backgroundColor: (book.copies_available > 0 && !isBorrowed) ? "#1d4ed8" : "#9ca3af",
+              backgroundColor: !isRequested ? "#1d4ed8" : "#9ca3af",
               boxShadow: "0 6px 16px rgba(37, 99, 235, 0.4)",
             },
           }}
         >
-          {isBorrowed
-            ? "Borrowed"
-            : book.copies_available > 0
-            ? "Borrow This Book"
-            : "Currently Unavailable"}
+          {isRequested
+            ? "Request Submitted"
+            : "Request This Book"}
         </Button>
       </Box>
     </Box>
