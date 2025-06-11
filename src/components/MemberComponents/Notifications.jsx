@@ -25,7 +25,7 @@ const categorizeNotifications = (notifications) => {
   };
 
   notifications.forEach((note) => {
-    if (note.includes("New")) categories.new.push(note);
+    if (note.includes("Added")) categories.new.push(note);
     else if (note.includes("Updated")) categories.updated.push(note);
     else if (note.includes("Removed")) categories.removed.push(note);
     else if (note.includes("due in 3 days")) categories.dueSoon.push(note);
@@ -94,7 +94,7 @@ const Notifications = () => {
   return (
     <Container maxWidth="md" sx={{ mt: 4 }}>
       <Typography variant="h4" fontWeight={700} color="primary" gutterBottom>
-        📢 Member Notifications
+        Member Notifications
       </Typography>
 
       <Paper sx={{ mt: 2, borderRadius: 2 }}>

@@ -139,26 +139,48 @@ const BorrowRequests = () => {
         ))}
       </Grid>
 
-      {/* Reject Dialog */}
-      <Dialog open={openRejectDialog} onClose={() => setOpenRejectDialog(false)}>
-        <DialogTitle>Reject Request</DialogTitle>
-        <DialogContent>
-          <TextField
-            label="Rejection Reason"
-            fullWidth
-            multiline
-            rows={3}
-            value={rejectReason}
-            onChange={(e) => setRejectReason(e.target.value)}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenRejectDialog(false)}>Cancel</Button>
-          <Button variant="contained" color="error" onClick={handleReject} disabled={!rejectReason.trim()}>
-            Submit
-          </Button>
-        </DialogActions>
-      </Dialog>
+     
+      <Dialog
+  open={openRejectDialog}
+  onClose={() => setOpenRejectDialog(false)}
+  fullWidth
+  maxWidth="sm" // You can use "md" for even more width
+  PaperProps={{
+    sx: {
+      width: "600px", // You can increase this if needed
+    },
+  }}
+>
+  <DialogTitle sx={{ mb: 2 }}>Reject Request</DialogTitle>
+
+  <DialogContent sx={{ pt: 0 }}>
+    <TextField
+      label="Rejection Reason"
+      multiline
+      rows={6}
+      fullWidth
+      value={rejectReason}
+      onChange={(e) => setRejectReason(e.target.value)}
+      sx={{
+        mt: 1,
+      }}
+      variant="outlined"
+    />
+  </DialogContent>
+
+  <DialogActions>
+    <Button onClick={() => setOpenRejectDialog(false)}>Cancel</Button>
+    <Button
+      variant="contained"
+      color="error"
+      onClick={handleReject}
+      disabled={!rejectReason.trim()}
+    >
+      Submit
+    </Button>
+  </DialogActions>
+</Dialog>
+
 
       {/* Snackbar on top */}
       <Snackbar

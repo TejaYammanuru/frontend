@@ -28,7 +28,7 @@ const MyBorrowRequests = () => {
         const token = localStorage.getItem("token");
         const res = await axios.get("http://localhost:8080/borrow/status", {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `${token}`,
           },
         });
         setRequests(res.data);
@@ -45,7 +45,7 @@ const MyBorrowRequests = () => {
   return (
     <Box p={3}>
       <Typography variant="h4" fontWeight={600} color="#1976d2" gutterBottom>
-        📩 My Borrow Requests
+       My Borrow Requests
       </Typography>
 
       {loading ? (

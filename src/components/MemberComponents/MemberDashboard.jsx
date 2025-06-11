@@ -63,6 +63,11 @@ const MemberDashboard = () => {
     password_confirmation: "",
   });
   const [updateMessage, setUpdateMessage] = useState(null);
+  const [updateAlert, setUpdateAlert] = useState({
+    show: false,
+    message: "",
+    severity: "success", // success or error
+  });
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -71,6 +76,22 @@ const MemberDashboard = () => {
   const handleMenuClick = (event) => setAnchorEl(event.currentTarget);
   const handleMenuClose = () => setAnchorEl(null);
   const handleDrawerToggle = () => setDrawerOpen(!drawerOpen);
+
+  // Function to show alert for 3 seconds
+  const showAlert = (message, severity) => {
+    setUpdateAlert({
+      show: true,
+      message,
+      severity,
+    });
+    setTimeout(() => {
+      setUpdateAlert({
+        show: false,
+        message: "",
+        severity: "success",
+      });
+    }, 3000);
+  };
 
   const handleLogout = async () => {
     const token = localStorage.getItem("token");
@@ -110,6 +131,12 @@ const MemberDashboard = () => {
           password_confirmation: "",
         });
         setUpdateDialogOpen(true);
+        // Clear any previous alerts
+        setUpdateAlert({
+          show: false,
+          message: "",
+          severity: "success",
+        });
       })
       .catch((err) => {
         console.error("Failed to fetch user data", err);
@@ -117,53 +144,95 @@ const MemberDashboard = () => {
   };
 
   const handleDelete = async () => {
-  const confirmDelete = window.confirm("Are you sure you want to delete your profile? This action cannot be undone.");
-  if (!confirmDelete) return;
+    const confirmDelete = window.confirm("Are you sure you want to delete your profile? This action cannot be undone.");
+    if (!confirmDelete) return;
 
-  const token = localStorage.getItem("token");
-
-  try {
-    const response = await axios.delete("http://localhost:3001/signup", {
-      headers: {
-        Authorization: `${token}`,
-      },
-    });
-
-    if (response.status === 200) {
-      alert("Account deleted successfully.");
-      localStorage.removeItem("token");
-      navigate("/");
-    }
-  } catch (error) {
-    console.error("Account deletion failed", error);
-    alert("Failed to delete account. Please try again.");
-  }
-};
-
-
-  const handleProfileUpdateSubmit = async () => {
     const token = localStorage.getItem("token");
 
     try {
-      const response = await axios.put(
-        "http://localhost:3001/signup",
-        { user: userData },
-        {
-          headers: {
-            Authorization: `${token}`,
-          },
-        }
-      );
+      const response = await axios.delete("http://localhost:3001/signup", {
+        headers: {
+          Authorization: `${token}`,
+        },
+      });
 
       if (response.status === 200) {
-        setUpdateMessage("Profile updated successfully!");
-        setUpdateDialogOpen(false);
+        alert("Account deleted successfully.");
+        localStorage.removeItem("token");
+        navigate("/");
       }
     } catch (error) {
-      console.error("Update error", error);
-      setUpdateMessage("Profile update failed. Please try again.");
+      console.error("Account deletion failed", error);
+      alert("Failed to delete account. Please try again.");
     }
   };
+
+  const handleProfileUpdateSubmit = async () => {
+  
+  if (userData.password && userData.password.length < 8) {
+    showAlert("Password must be at least 8 characters long", "error");
+    return;
+  }
+
+  
+  if (userData.password && userData.password !== userData.password_confirmation) {
+    showAlert("Password and confirmation do not match", "error");
+    return;
+  }
+
+  const token = localStorage.getItem("token");
+
+  
+  const updatePayload = {
+    name: userData.name,
+    email: userData.email,
+  };
+
+  
+  if (userData.password && userData.password.trim() !== "") {
+    updatePayload.password = userData.password;
+    updatePayload.password_confirmation = userData.password_confirmation;
+  }
+
+  try {
+    const response = await axios.put(
+      "http://localhost:3001/signup",
+      { user: updatePayload },
+      {
+        headers: {
+          Authorization: `${token}`,
+        },
+      }
+    );
+
+    if (response.status === 200) {
+      showAlert("Profile updated successfully!", "success");
+      setTimeout(() => {
+        setUpdateDialogOpen(false);
+      }, 1500); 
+    }
+  } catch (error) {
+    console.error("Update error", error);
+    
+    
+    let errorMessage = "Profile update failed. Please try again.";
+    
+    if (error.response && error.response.data) {
+      const errorData = error.response.data;
+      
+    
+      if (errorData.errors && Array.isArray(errorData.errors)) {
+        errorMessage = errorData.errors.join(", ");
+      } else if (errorData.message) {
+        errorMessage = errorData.message;
+      } else if (typeof errorData === 'string') {
+        errorMessage = errorData;
+      }
+    }
+    
+    showAlert(errorMessage, "error");
+  }
+};
 
   const menuItems = [
     { text: "Dashboard", icon: <Home />, path: "/member/dashboard" },
@@ -373,6 +442,21 @@ const MemberDashboard = () => {
       <Dialog open={updateDialogOpen} onClose={() => setUpdateDialogOpen(false)} maxWidth="xs" fullWidth>
         <DialogTitle>Update Profile</DialogTitle>
         <DialogContent>
+          {/* Alert positioned at top of dialog content */}
+          {updateAlert.show && (
+            <Alert 
+              severity={updateAlert.severity} 
+              sx={{ 
+                mb: 2,
+                backgroundColor: updateAlert.severity === 'success' ? '#d4edda' : '#f8d7da',
+                color: updateAlert.severity === 'success' ? '#155724' : '#721c24',
+                border: updateAlert.severity === 'success' ? '1px solid #c3e6cb' : '1px solid #f5c6cb'
+              }}
+            >
+              {updateAlert.message}
+            </Alert>
+          )}
+          
           <TextField
             margin="dense"
             label="Name"
@@ -394,6 +478,7 @@ const MemberDashboard = () => {
             fullWidth
             value={userData.password}
             onChange={(e) => setUserData({ ...userData, password: e.target.value })}
+            helperText="Leave blank to keep current password. Minimum 8 characters if changing."
           />
           <TextField
             margin="dense"

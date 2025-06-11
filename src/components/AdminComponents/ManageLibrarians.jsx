@@ -24,7 +24,7 @@ const ManageLibrarians = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
   const [editingLibrarian, setEditingLibrarian] = useState(null);
-  const [formData, setFormData] = useState({ name: "", email: "", password: "" });
+  const [formData, setFormData] = useState({ name: "", email: "", password: "", password_confirmation: "" });
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
   const [deleteDialog, setDeleteDialog] = useState({ open: false, librarian: null });
 
@@ -59,7 +59,6 @@ const ManageLibrarians = () => {
     fetchLibrarians();
   }, []);
 
-  
   useEffect(() => {
     if (!searchTerm.trim()) {
       setFilteredLibrarians(librarians);
@@ -82,13 +81,13 @@ const ManageLibrarians = () => {
 
   const handleOpenAdd = () => {
     setEditingLibrarian(null);
-    setFormData({ name: "", email: "", password: "" });
+    setFormData({ name: "", email: "", password: "", password_confirmation: "" });
     setOpenDialog(true);
   };
 
   const handleOpenEdit = (librarian) => {
     setEditingLibrarian(librarian);
-    setFormData({ name: librarian.name, email: librarian.email, password: "" });
+    setFormData({ name: librarian.name, email: librarian.email, password: "", password_confirmation: "" });
     setOpenDialog(true);
   };
 
@@ -98,31 +97,24 @@ const ManageLibrarians = () => {
 
   const handleDeleteConfirm = async () => {
     if (!deleteDialog.librarian) return;
-
     try {
       const token = localStorage.getItem("token");
-      console.log("Deleting librarian with token:", token);
-      
-      await axios.delete(
-        `http://localhost:3001/signup/${deleteDialog.librarian.id}`,
-        {
-          headers: {
-            Authorization: `${token}`,
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-        }
-      );
+      await axios.delete(`http://localhost:3001/signup/${deleteDialog.librarian.id}`, {
+        headers: {
+          Authorization: `${token}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      });
 
-      
       setLibrarians((prev) => prev.filter((lib) => lib.id !== deleteDialog.librarian.id));
       setSnackbar({ open: true, message: "Librarian deleted successfully", severity: "success" });
       setDeleteDialog({ open: false, librarian: null });
     } catch (error) {
       console.error("Error deleting librarian:", error);
       const errorMsg =
-        error.response?.data?.errors?.join(", ") || 
-        error.response?.data?.message || 
+        error.response?.data?.errors?.join(", ") ||
+        error.response?.data?.message ||
         "Failed to delete librarian";
       setSnackbar({ open: true, message: errorMsg, severity: "error" });
       setDeleteDialog({ open: false, librarian: null });
@@ -134,25 +126,30 @@ const ManageLibrarians = () => {
   };
 
   const handleSubmit = async () => {
-    if (!formData.name || !formData.email || (!editingLibrarian && !formData.password)) return;
+    if (!formData.name || !formData.email || (!editingLibrarian && !formData.password)) {
+      setSnackbar({ open: true, message: "Please fill all required fields", severity: "warning" });
+      return;
+    }
+
+    if (formData.password !== formData.password_confirmation) {
+      setSnackbar({ open: true, message: "Passwords do not match", severity: "error" });
+      return;
+    }
+
+    const token = localStorage.getItem("token");
 
     if (editingLibrarian) {
-     
       try {
-        const token = localStorage.getItem("token");
-        console.log("Updating librarian with token:", token);
-        
         const response = await axios.put(
           `http://localhost:3001/signup/${editingLibrarian.id}`,
           {
             user: {
               name: formData.name,
               email: formData.email,
-              
-              ...(formData.password && { 
+              ...(formData.password && {
                 password: formData.password,
-                password_confirmation: formData.password 
-              })
+                password_confirmation: formData.password_confirmation,
+              }),
             },
           },
           {
@@ -164,7 +161,6 @@ const ManageLibrarians = () => {
           }
         );
 
-        
         const updatedUser = response.data.user;
         setLibrarians((prev) =>
           prev.map((lib) =>
@@ -173,71 +169,64 @@ const ManageLibrarians = () => {
               : lib
           )
         );
-        
         setSnackbar({ open: true, message: "Librarian updated successfully", severity: "success" });
         setOpenDialog(false);
       } catch (error) {
         console.error("Error updating librarian:", error);
         const errorMsg =
-          error.response?.data?.errors?.join(", ") || 
-          error.response?.data?.message || 
+          error.response?.data?.errors?.join(", ") ||
+          error.response?.data?.message ||
           "Failed to update librarian";
         setSnackbar({ open: true, message: errorMsg, severity: "error" });
       }
-      return;
-    }
-
-  
-    try {
-      const token = localStorage.getItem("token");
-      console.log(token);
-      const response = await axios.post(
-        "http://localhost:3001/signup",
-        {
-          user: {
-            name: formData.name,
-            email: formData.email,
-            password: formData.password,
-            password_confirmation: formData.password,
-            role: 1,
+    } else {
+      try {
+        const response = await axios.post(
+          "http://localhost:3001/signup",
+          {
+            user: {
+              name: formData.name,
+              email: formData.email,
+              password: formData.password,
+              password_confirmation: formData.password_confirmation,
+              role: 1,
+            },
           },
-        },
-        {
-          headers: {
-            Authorization: `${token}`,
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-        }
-      );
+          {
+            headers: {
+              Authorization: `${token}`,
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+          }
+        );
 
-      const newUser = response.data.user;
-      setLibrarians((prev) => [
-        ...prev,
-        {
-          id: newUser.id,
-          name: newUser.name,
-          email: newUser.email,
-        },
-      ]);
-      setSnackbar({ open: true, message: "Librarian added successfully", severity: "success" });
-      setOpenDialog(false);
-    } catch (error) {
-      console.error("Error adding librarian:", error);
-      const errorMsg =
-        error.response?.data?.errors?.join(", ") || "Failed to add librarian";
-      setSnackbar({ open: true, message: errorMsg, severity: "error" });
+        const newUser = response.data.user;
+        setLibrarians((prev) => [
+          ...prev,
+          { id: newUser.id, name: newUser.name, email: newUser.email },
+        ]);
+        setSnackbar({ open: true, message: "Librarian added successfully", severity: "success" });
+        setOpenDialog(false);
+      } catch (error) {
+        console.error("Error adding librarian:", error);
+        const errorMsg =
+          error.response?.data?.errors?.join(", ") || "Failed to add librarian";
+        setSnackbar({ open: true, message: errorMsg, severity: "error" });
+      }
     }
   };
 
   const columns = [
     { field: "id", headerName: "ID", width: 70 },
-    { field: "name", headerName: "Name", flex: 1 },
-    { field: "email", headerName: "Email", flex: 1.5 },
+    { field: "name", headerName: "Name", minWidth: 150, flex: 1 },
+    { field: "email", headerName: "Email", minWidth: 200, flex: 1 },
     {
       field: "actions",
       headerName: "Actions",
       sortable: false,
+      filterable: false,
+      disableColumnMenu: true,
       renderCell: (params) => (
         <>
           <Tooltip title="Edit">
@@ -260,8 +249,8 @@ const ManageLibrarians = () => {
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h4" fontWeight={600} color="#3f51b5">
-                 Manage Librarians
-               </Typography>
+          Manage Librarians
+        </Typography>
         <Button
           variant="contained"
           startIcon={<Add />}
@@ -272,7 +261,6 @@ const ManageLibrarians = () => {
         </Button>
       </Box>
 
-     
       <Box mb={2}>
         <TextField
           fullWidth
@@ -288,31 +276,11 @@ const ManageLibrarians = () => {
             ),
             endAdornment: searchTerm && (
               <InputAdornment position="end">
-                <IconButton
-                  aria-label="clear search"
-                  onClick={handleClearSearch}
-                  edge="end"
-                  size="small"
-                >
+                <IconButton onClick={handleClearSearch} edge="end" size="small">
                   <Clear />
                 </IconButton>
               </InputAdornment>
             ),
-          }}
-          sx={{
-            backgroundColor: "#fff",
-            borderRadius: 1,
-            "& .MuiOutlinedInput-root": {
-              "& fieldset": {
-                borderColor: "#e0e0e0",
-              },
-              "&:hover fieldset": {
-                borderColor: "#3f51b5",
-              },
-              "&.Mui-focused fieldset": {
-                borderColor: "#3f51b5",
-              },
-            },
           }}
         />
       </Box>
@@ -322,54 +290,54 @@ const ManageLibrarians = () => {
         columns={columns}
         autoHeight
         disableRowSelectionOnClick
+        pagination
+        pageSize={10}
+        rowsPerPageOptions={[5, 10, 20]}
         sx={{ backgroundColor: "#fff", borderRadius: 2 }}
-        noRowsOverlay={() => (
-          <Box
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            height="200px"
-            flexDirection="column"
-          >
-            <Typography variant="h6" color="textSecondary">
-              {searchTerm ? "No librarians found matching your search" : "No librarians found"}
-            </Typography>
-            {searchTerm && (
-              <Typography variant="body2" color="textSecondary" mt={1}>
-                Try adjusting your search terms
-              </Typography>
-            )}
-          </Box>
-        )}
       />
 
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth maxWidth="sm">
         <DialogTitle>{editingLibrarian ? "Edit Librarian" : "Add New Librarian"}</DialogTitle>
         <DialogContent dividers>
           <TextField
-            fullWidth
-            label="Name"
-            margin="normal"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          />
-          <TextField
-            fullWidth
-            label="Email"
-            margin="normal"
-            type="email"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          />
-          <TextField
-            fullWidth
-            label={editingLibrarian ? "New Password (optional)" : "Password"}
-            margin="normal"
-            type="password"
-            value={formData.password}
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            helperText={editingLibrarian ? "Leave blank to keep current password" : ""}
-          />
+  fullWidth
+  label="Name"
+  margin="normal"
+  required
+  value={formData.name}
+  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+/>
+<TextField
+  fullWidth
+  label="Email"
+  margin="normal"
+  type="email"
+  required
+  value={formData.email}
+  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+/>
+<TextField
+  fullWidth
+  label={editingLibrarian ? "New Password (optional)" : "Password"}
+  margin="normal"
+  type="password"
+  required={!editingLibrarian}
+  value={formData.password}
+  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+/>
+<TextField
+  fullWidth
+  label="Confirm Password"
+  margin="normal"
+  type="password"
+  required={!editingLibrarian}
+  value={formData.password_confirmation}
+  onChange={(e) => setFormData({ ...formData, password_confirmation: e.target.value })}
+  helperText={
+    editingLibrarian ? "Leave both password fields blank to keep current password" : ""
+  }
+/>
+
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
@@ -379,32 +347,21 @@ const ManageLibrarians = () => {
         </DialogActions>
       </Dialog>
 
-      
       <Dialog
         open={deleteDialog.open}
         onClose={handleDeleteCancel}
         aria-labelledby="delete-dialog-title"
-        aria-describedby="delete-dialog-description"
       >
-        <DialogTitle id="delete-dialog-title">
-          Confirm Delete
-        </DialogTitle>
+        <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
-          <Typography id="delete-dialog-description">
-            Are you sure you want to delete the librarian "{deleteDialog.librarian?.name}"? 
-            This action cannot be undone.
+          <Typography>
+            Are you sure you want to delete the librarian "{deleteDialog.librarian?.name}"? This
+            action cannot be undone.
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleDeleteCancel} color="primary">
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleDeleteConfirm} 
-            color="error" 
-            variant="contained"
-            autoFocus
-          >
+          <Button onClick={handleDeleteCancel}>Cancel</Button>
+          <Button onClick={handleDeleteConfirm} color="error" variant="contained" autoFocus>
             Delete
           </Button>
         </DialogActions>

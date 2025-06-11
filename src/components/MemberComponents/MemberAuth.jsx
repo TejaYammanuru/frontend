@@ -41,6 +41,18 @@ const MemberAuth = () => {
     resetForm();
   };
 
+  // Function to extract error message from backend response
+  const extractErrorMessage = (data) => {
+    if (data.errors && Array.isArray(data.errors)) {
+      return data.errors.join(", ");
+    } else if (data.message) {
+      return data.message;
+    } else if (typeof data === 'string') {
+      return data;
+    }
+    return "An unexpected error occurred.";
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError(null);
@@ -63,7 +75,9 @@ const MemberAuth = () => {
         setSuccess("Login successful! Redirecting...");
         setTimeout(() => navigate("/member/dashboard"), 1500);
       } else {
-        setError(data.message || "Invalid login credentials.");
+        // Extract error message using the helper function
+        const errorMessage = extractErrorMessage(data);
+        setError(errorMessage);
       }
     } catch (err) {
       console.error("Login error:", err);
@@ -107,7 +121,9 @@ const MemberAuth = () => {
         setSuccess("Signup successful! Redirecting...");
         setTimeout(() => navigate("/member/dashboard"), 1500);
       } else {
-        setError(data.message || "Signup failed. Please try again.");
+        // Extract error message using the helper function
+        const errorMessage = extractErrorMessage(data);
+        setError(errorMessage);
       }
     } catch (err) {
       console.error("Signup error:", err);
@@ -163,7 +179,12 @@ const MemberAuth = () => {
         <Collapse in={error !== null}>
           <Alert
             severity="error"
-            sx={{ mb: 3 }}
+            sx={{ 
+              mb: 3,
+              backgroundColor: '#f8d7da',
+              color: '#721c24',
+              border: '1px solid #f5c6cb'
+            }}
             action={
               <IconButton onClick={() => setError(null)} size="small">
                 <CloseIcon fontSize="small" />
@@ -177,7 +198,12 @@ const MemberAuth = () => {
         <Collapse in={success !== null}>
           <Alert
             severity="success"
-            sx={{ mb: 3 }}
+            sx={{ 
+              mb: 3,
+              backgroundColor: '#d4edda',
+              color: '#155724',
+              border: '1px solid #c3e6cb'
+            }}
             action={
               <IconButton onClick={() => setSuccess(null)} size="small">
                 <CloseIcon fontSize="small" />
@@ -222,6 +248,7 @@ const MemberAuth = () => {
             onChange={(e) => setPassword(e.target.value)}
             required
             sx={{ mb: 2 }}
+            helperText={tab === 1 ? "Password must be at least 6 characters" : ""}
           />
 
           {tab === 1 && (

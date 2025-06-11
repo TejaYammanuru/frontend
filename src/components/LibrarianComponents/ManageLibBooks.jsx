@@ -63,7 +63,7 @@ const ManageLibBooks = () => {
     publication_date: "",
     total_copies: 0,
     copies_available: 0,
-    overdue_days: 14,
+    overdue_days: 15,
     image_url: "",
   });
   const [imagePreview, setImagePreview] = useState("");
@@ -119,7 +119,7 @@ const ManageLibBooks = () => {
       publication_date: "",
       total_copies: 0,
       copies_available: 0,
-      overdue_days: 14,
+      overdue_days: 15,
       image_url: "",
     });
     setImagePreview("");
@@ -184,7 +184,7 @@ const ManageLibBooks = () => {
       publication_date: "",
       total_copies: 0,
       copies_available: 0,
-      overdue_days: 14,
+      overdue_days: 15,
       image_url: "",
     });
   };

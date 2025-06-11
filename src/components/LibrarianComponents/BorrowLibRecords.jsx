@@ -91,9 +91,12 @@ const BorrowLibRecords = () => {
             {params.value}
           </Typography>
         ) : (
-          <Typography sx={{ color: '#FF9800', fontWeight: 600 }}>
-            Not Returned
-          </Typography>
+         <Box sx={{ textAlign: 'center', mt: 2 }}>
+  <Typography sx={{ color: '#FF9800', fontWeight: 600 }}>
+    Not Returned
+  </Typography>
+</Box>
+
         ),
     },
   ];

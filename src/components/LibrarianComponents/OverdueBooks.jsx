@@ -16,6 +16,7 @@ import {
   Person,
   AccessTime,
   CalendarToday,
+  CurrencyRupee,
 } from "@mui/icons-material";
 import axios from "axios";
 
@@ -36,7 +37,7 @@ const OverdueBooks = () => {
         setRecords(response.data || []);
       } catch (error) {
         console.error("Failed to fetch overdue books:", error);
-        setRecords([]); // fallback in case of failure
+        setRecords([]); 
       } finally {
         setLoading(false);
       }
@@ -64,9 +65,10 @@ const OverdueBooks = () => {
               const borrowedAt = new Date(record.borrowed_at).toLocaleString();
               const expectedReturn = new Date(record.expected_return).toLocaleDateString();
               const daysOverdue = record.days_overdue;
+              const penalty = daysOverdue * 10;
 
               return (
-                <React.Fragment key={record.id}>
+                <React.Fragment key={record.borrow_id || `${record.user.id}-${record.book.id}`}>
                   <ListItem alignItems="flex-start">
                     <ListItemAvatar>
                       <Avatar sx={{ bgcolor: "#00897B" }}>
@@ -76,7 +78,8 @@ const OverdueBooks = () => {
                     <ListItemText
                       primary={
                         <Typography variant="subtitle1" fontWeight={600}>
-                          {record.user.name} — <span style={{ color: "#555" }}>{record.user.email}</span>
+                          {record.user.name} —{" "}
+                          <span style={{ color: "#555" }}>{record.user.email}</span>
                         </Typography>
                       }
                       secondary={
@@ -104,8 +107,19 @@ const OverdueBooks = () => {
                               fontWeight: 600,
                             }}
                           >
-                            <AccessTime fontSize="small" sx={{ mr: 1 }} />
+                           
                             {daysOverdue} day{daysOverdue > 1 ? "s" : ""} overdue
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: theme.palette.error.main,
+                              fontWeight: 600,
+                              mt: 0.5,
+                            }}
+                          >
+                           
+                            Penalty: ₹{penalty}
                           </Typography>
                         </>
                       }

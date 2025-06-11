@@ -38,7 +38,7 @@ const AdminOverview = () => {
       try {
         const response = await fetch("http://localhost:8080/borrow/dashboard", {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `${localStorage.getItem("token")}`,
           },
         });
         if (response.ok) {
@@ -247,7 +247,7 @@ const AdminOverview = () => {
 
        
         <Grid container spacing={3}>
-          <Grid item xs={12} lg={8}>
+          {/* <Grid item xs={12} lg={8}>
             <Paper 
               elevation={0}
               sx={{
@@ -329,9 +329,9 @@ const AdminOverview = () => {
                     </Typography>
                   </Box>
                 </Grid> */}
-              </Grid>
+              {/* </Grid>
             </Paper>
-          </Grid>
+          </Grid> */} 
 
           <Grid item xs={12} lg={4}>
             <Paper 
