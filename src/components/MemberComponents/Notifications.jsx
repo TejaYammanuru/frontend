@@ -25,11 +25,11 @@ const categorizeNotifications = (notifications) => {
   };
 
   notifications.forEach((note) => {
-    if (note.startsWith("📗")) categories.new.push(note);
-    else if (note.startsWith("✏️")) categories.updated.push(note);
-    else if (note.startsWith("🗑️")) categories.removed.push(note);
+    if (note.includes("New")) categories.new.push(note);
+    else if (note.includes("Updated")) categories.updated.push(note);
+    else if (note.includes("Removed")) categories.removed.push(note);
     else if (note.includes("due in 3 days")) categories.dueSoon.push(note);
-    else if (note.startsWith("🔥")) categories.popular.push(note);
+    else if (note.includes("popular")) categories.popular.push(note);
   });
 
   return categories;
