@@ -20,22 +20,16 @@ const Notifications = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchBorrowingHistory = async () => {
+    const fetchOverdueBooks = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get('http://localhost:8080/borrow/history', {
+        const response = await axios.get('http://localhost:8080/borrow/overdue', {
           headers: {
             Authorization: token,
           },
         });
 
-        const overdue = response.data.filter((record) => {
-          const borrowedAt = dayjs(record.borrowed_at);
-          const daysElapsed = dayjs().diff(borrowedAt, 'day');
-          return daysElapsed >= 0 && !record.returned_at;
-        });
-
-        setOverdueBooks(overdue);
+        setOverdueBooks(response.data);
       } catch (err) {
         console.error(err);
         setError('An error occurred while retrieving your notifications. Please try again later.');
@@ -44,14 +38,10 @@ const Notifications = () => {
       }
     };
 
-    fetchBorrowingHistory();
+    fetchOverdueBooks();
   }, []);
 
-  const formatDaysOverdue = (days) => {
-    if (days === 0) return 'today';
-    if (days === 1) return 'yesterday';
-    return `${days} days ago`;
-  };
+  const formatDate = (date) => dayjs(date).format('DD MMM YYYY');
 
   if (loading) {
     return (
@@ -89,34 +79,41 @@ const Notifications = () => {
           </Alert>
 
           <Grid container spacing={3}>
-            {overdueBooks.map((record) => {
-              const daysOverdue = dayjs().diff(dayjs(record.borrowed_at), 'day');
-              return (
-                <Grid item xs={12} sm={6} md={4} key={record.id}>
-                  <Card sx={{ borderRadius: 3, boxShadow: 3, height: '100%' }}>
-                    <CardMedia
-                      component="img"
-                      height="200"
-                      image={`http://localhost:8080${record.book.image_url}`}
-                      alt={record.book.title}
-                      sx={{ objectFit: 'cover' }}
-                    />
-                    <CardContent>
-                      <Typography variant="h6" fontWeight="bold" gutterBottom>
-                        {record.book.title}
+            {overdueBooks.map((record) => (
+              <Grid item xs={12} sm={6} md={4} key={record.borrow_id}>
+                <Card sx={{ borderRadius: 3, boxShadow: 3, height: '100%' }}>
+                  <CardMedia
+                    component="img"
+                    height="200"
+                    image={`http://localhost:8080${record.book.image_url}`}
+                    alt={record.book.title}
+                    sx={{ objectFit: 'cover' }}
+                  />
+                  <CardContent>
+                    <Typography variant="h6" fontWeight="bold" gutterBottom>
+                      {record.book.title}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Author: {record.book.author}
+                    </Typography>
+
+                    <Divider sx={{ my: 1 }} />
+
+                    <Typography variant="body2">
+                      Borrowed on: <strong>{formatDate(record.borrowed_at)}</strong>
+                    </Typography>
+                    <Typography variant="body2">
+                      Due on: <strong>{formatDate(record.expected_return)}</strong>
+                    </Typography>
+                    {record.days_overdue > 0 && (
+                      <Typography variant="body2" color="error" mt={1}>
+                        Overdue by <strong>{record.days_overdue} day{record.days_overdue > 1 ? 's' : ''}</strong>
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Author: {record.book.author}
-                      </Typography>
-                      <Divider sx={{ my: 1 }} />
-                      <Typography variant="body2" color="error" fontWeight="medium">
-                        Borrowed {formatDaysOverdue(daysOverdue)}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              );
-            })}
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
           </Grid>
         </>
       )}
