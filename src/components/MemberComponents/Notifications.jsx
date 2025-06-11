@@ -1,52 +1,76 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Typography,
-  Grid,
-  Card,
-  CardContent,
-  CardMedia,
+  Tabs,
+  Tab,
   CircularProgress,
   Alert,
-  AlertTitle,
+  List,
+  ListItem,
+  ListItemText,
   Divider,
-} from '@mui/material';
-import axios from 'axios';
-import dayjs from 'dayjs';
+  Paper,
+  Container,
+} from "@mui/material";
+import axios from "axios";
+
+const categorizeNotifications = (notifications) => {
+  const categories = {
+    new: [],
+    updated: [],
+    removed: [],
+    dueSoon: [],
+    popular: [],
+  };
+
+  notifications.forEach((note) => {
+    if (note.startsWith("📗")) categories.new.push(note);
+    else if (note.startsWith("✏️")) categories.updated.push(note);
+    else if (note.startsWith("🗑️")) categories.removed.push(note);
+    else if (note.includes("due in 3 days")) categories.dueSoon.push(note);
+    else if (note.startsWith("🔥")) categories.popular.push(note);
+  });
+
+  return categories;
+};
+
+const TabPanel = ({ children, value, index }) => {
+  return value === index ? <Box p={2}>{children}</Box> : null;
+};
 
 const Notifications = () => {
-  const [overdueBooks, setOverdueBooks] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [categorized, setCategorized] = useState({});
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [tab, setTab] = useState(0);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchOverdueBooks = async () => {
+    const fetchNotifications = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get('http://localhost:8080/borrow/overdue', {
-          headers: {
-            Authorization: token,
-          },
+        const token = localStorage.getItem("token");
+        const res = await axios.get("http://localhost:8080/borrow/member-notifications", {
+          headers: { Authorization: token },
         });
-
-        setOverdueBooks(response.data);
+        const notes = res.data.notifications || [];
+        setNotifications(notes);
+        setCategorized(categorizeNotifications(notes));
       } catch (err) {
         console.error(err);
-        setError('An error occurred while retrieving your notifications. Please try again later.');
+        setError("Failed to load notifications.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchOverdueBooks();
+    fetchNotifications();
   }, []);
-
-  const formatDate = (date) => dayjs(date).format('DD MMM YYYY');
 
   if (loading) {
     return (
       <Box p={4} display="flex" justifyContent="center">
-        <CircularProgress />
+        <CircularProgress color="primary" />
       </Box>
     );
   }
@@ -59,65 +83,54 @@ const Notifications = () => {
     );
   }
 
+  const tabLabels = [
+    { label: "New Books", key: "new" },
+    { label: "Updated Books", key: "updated" },
+    { label: "Removed Books", key: "removed" },
+    { label: "Due Soon", key: "dueSoon" },
+    { label: "Popular Books", key: "popular" },
+  ];
+
   return (
-    <Box p={4}>
-      <Typography variant="h4" color="primary" fontWeight="bold" gutterBottom>
-        📚 Overdue Notifications
+    <Container maxWidth="md" sx={{ mt: 4 }}>
+      <Typography variant="h4" fontWeight={700} color="primary" gutterBottom>
+        📢 Member Notifications
       </Typography>
 
-      {overdueBooks.length === 0 ? (
-        <Alert severity="success" sx={{ mt: 3 }}>
-          <AlertTitle>All Clear!</AlertTitle>
-          You have no overdue books. Keep reading responsibly!
-        </Alert>
-      ) : (
-        <>
-          <Alert severity="warning" sx={{ mb: 3 }}>
-            <AlertTitle>Overdue Alert</AlertTitle>
-            You have <strong>{overdueBooks.length}</strong> book
-            {overdueBooks.length > 1 ? 's' : ''} overdue. Please return them promptly.
-          </Alert>
+      <Paper sx={{ mt: 2, borderRadius: 2 }}>
+        <Tabs
+          value={tab}
+          onChange={(_, newValue) => setTab(newValue)}
+          variant="scrollable"
+          scrollButtons="auto"
+          indicatorColor="primary"
+          textColor="primary"
+        >
+          {tabLabels.map((tab, index) => (
+            <Tab key={tab.key} label={tab.label} />
+          ))}
+        </Tabs>
 
-          <Grid container spacing={3}>
-            {overdueBooks.map((record) => (
-              <Grid item xs={12} sm={6} md={4} key={record.borrow_id}>
-                <Card sx={{ borderRadius: 3, boxShadow: 3, height: '100%' }}>
-                  <CardMedia
-                    component="img"
-                    height="200"
-                    image={`http://localhost:8080${record.book.image_url}`}
-                    alt={record.book.title}
-                    sx={{ objectFit: 'cover' }}
-                  />
-                  <CardContent>
-                    <Typography variant="h6" fontWeight="bold" gutterBottom>
-                      {record.book.title}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Author: {record.book.author}
-                    </Typography>
-
-                    <Divider sx={{ my: 1 }} />
-
-                    <Typography variant="body2">
-                      Borrowed on: <strong>{formatDate(record.borrowed_at)}</strong>
-                    </Typography>
-                    <Typography variant="body2">
-                      Due on: <strong>{formatDate(record.expected_return)}</strong>
-                    </Typography>
-                    {record.days_overdue > 0 && (
-                      <Typography variant="body2" color="error" mt={1}>
-                        Overdue by <strong>{record.days_overdue} day{record.days_overdue > 1 ? 's' : ''}</strong>
-                      </Typography>
-                    )}
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        </>
-      )}
-    </Box>
+        {tabLabels.map((t, i) => (
+          <TabPanel key={t.key} value={tab} index={i}>
+            {categorized[t.key]?.length === 0 ? (
+              <Alert severity="info">No {t.label.toLowerCase()} notifications.</Alert>
+            ) : (
+              <List>
+                {categorized[t.key].map((note, idx) => (
+                  <React.Fragment key={idx}>
+                    <ListItem>
+                      <ListItemText primary={note} />
+                    </ListItem>
+                    {idx < categorized[t.key].length - 1 && <Divider />}
+                  </React.Fragment>
+                ))}
+              </List>
+            )}
+          </TabPanel>
+        ))}
+      </Paper>
+    </Container>
   );
 };
 
