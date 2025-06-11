@@ -235,14 +235,14 @@ const MemberDashboard = () => {
 };
 
   const menuItems = [
-    { text: "Dashboard", icon: <Home />, path: "/member/dashboard" },
-    { text: "View/Search Books", icon: <MenuBook />, path: "/member/dashboard/books" },
-     { text: "My Borrow Requests", icon: <MenuBook />, path: "/member/dashboard/requests" },
-    { text: "Notifications", icon: <NotificationsNone />, path: "/member/dashboard/notifications" },
-    { text: "Overdue Books", icon: <History />, path: "/member/dashboard/overdue" },
-    { text: "Borrowing History", icon: <History />, path: "/member/dashboard/history" },
-    { text: "Return book", icon: <AssignmentReturn />, path: "/member/dashboard/return" },
-  ];
+  { text: "View/Search Books", icon: <MenuBook />, path: "/member/dashboard/books" },
+  { text: "My Borrow Requests", icon: <MenuBook />, path: "/member/dashboard/requests" },
+  { text: "Notifications", icon: <NotificationsNone />, path: "/member/dashboard/notifications" },
+  { text: "Overdue Books", icon: <History />, path: "/member/dashboard/overdue" },
+  { text: "Borrowing History", icon: <History />, path: "/member/dashboard/history" },
+  { text: "Return book", icon: <AssignmentReturn />, path: "/member/dashboard/return" },
+];
+
 
   const isActiveRoute = (path) => {
     if (path === "/member/dashboard") {
@@ -416,18 +416,8 @@ const MemberDashboard = () => {
         )}
 
         <Routes>
-          <Route path="/" element={
-            <Box sx={{ textAlign: "center", py: 8 }}>
-              <MenuBook sx={{ fontSize: 80, color: "#1976d2", mb: 3 }} />
-              <Typography variant="h5" sx={{ color: "#333", mb: 2 }}>
-                Dashboard Home
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#666", maxWidth: 600, mx: "auto" }}>
-                Use the sidebar navigation to browse books, manage your borrowings, or view your history.
-                Click on any menu item to get started with your library experience.
-              </Typography>
-            </Box>
-          } />
+          <Route path="/" element={<BooksPage />} />
+
           <Route path="/books" element={<BooksPage />} />
           <Route path="/books/:bookId" element={<Book />} />
           <Route path="/history" element={<BorrowingHistory />} />
