@@ -52,7 +52,14 @@ const LibrarianDashboard = () => {
   };
 
   const menuItems = [
+      {
+      
+      text: "Dashboard",
+      icon: <LibraryBooks />,
+      path: "/librarian/dashboard",
+    },
     {
+      
       text: "Manage Books",
       icon: <LibraryBooks />,
       path: "/librarian/dashboard/books",

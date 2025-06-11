@@ -245,7 +245,7 @@ const AdminOverview = () => {
           </Grid>
         </Grid>
 
-        {/* Enhanced Summary Section */}
+       
         <Grid container spacing={3}>
           <Grid item xs={12} lg={8}>
             <Paper 
