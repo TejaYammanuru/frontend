@@ -48,7 +48,7 @@ const LibrarianDashboard = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    navigate("/librarian/login");
+    navigate("/");
   };
 
   const menuItems = [

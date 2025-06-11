@@ -83,9 +83,9 @@ const BorrowRequests = () => {
 
   return (
     <div style={{ padding: "2rem" }}>
-      <Typography variant="h5" gutterBottom sx={{ color: "#00897B" }}>
-        Pending Borrow Requests
-      </Typography>
+      <Typography variant="h4" fontWeight={600} sx={{ color: '#00897B' }} mb={3}>
+             Pending Borrow Requests
+           </Typography>
 
       <Grid container spacing={2}>
         {requests.map((req) => (

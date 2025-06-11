@@ -49,7 +49,7 @@ const AdminDashboardLayout = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    navigate("/admin/login");
+    navigate("/");
   };
 
   const menuItems = [

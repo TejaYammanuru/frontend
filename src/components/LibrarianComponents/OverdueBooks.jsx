@@ -45,13 +45,9 @@ const OverdueBooks = () => {
 
   return (
     <Box sx={{ p: 4 }}>
-      <Typography
-        variant="h5"
-        gutterBottom
-        sx={{ color: "#00897B", fontWeight: "bold", mb: 2 }}
-      >
-        Overdue Books
-      </Typography>
+      <Typography variant="h4" fontWeight={600} sx={{ color: '#00897B' }} mb={3}>
+            Overdue books
+           </Typography>
       <Box sx={{ height: 500, width: "100%" }}>
         <DataGrid
           rows={rows}

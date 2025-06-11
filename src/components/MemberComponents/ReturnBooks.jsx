@@ -116,7 +116,7 @@ const ReturnBooks = () => {
 
   return (
     <Box p={3}>
-      <Typography variant="h5" color="primary" gutterBottom>
+      <Typography variant="h4" fontWeight="bold" color="primary" gutterBottom>
         Return Book Management
       </Typography>
       <Tabs

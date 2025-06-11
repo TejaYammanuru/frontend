@@ -53,9 +53,9 @@ const ReturnAcknowledgement = () => {
 
   return (
     <div style={{ padding: "2rem" }}>
-      <Typography variant="h5" gutterBottom sx={{ color: "#00897B" }}>
-        Pending Return Acknowledgements
-      </Typography>
+      <Typography variant="h4" fontWeight={600} sx={{ color: '#00897B' }} mb={3}>
+            Pending Return Acknowledgements
+           </Typography>
 
       {loading ? (
         <CircularProgress />

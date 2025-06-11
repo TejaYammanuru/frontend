@@ -259,9 +259,9 @@ const ManageLibrarians = () => {
   return (
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h5" fontWeight={600}>
-          Manage Librarians
-        </Typography>
+        <Typography variant="h4" fontWeight={600} color="#3f51b5">
+                 Manage Librarians
+               </Typography>
         <Button
           variant="contained"
           startIcon={<Add />}

@@ -15,31 +15,39 @@ import {
   InputAdornment,
   Grid,
   Card,
-  MenuItem,
   CardMedia,
+  MenuItem,
+  Chip,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
-import { Edit, Delete, Add, Search, Clear, CloudUpload } from "@mui/icons-material";
+import {
+  Edit,
+  Delete,
+  Add,
+  Search,
+  Clear,
+  CloudUpload,
+  Schedule,
+} from "@mui/icons-material";
 import axios from "axios";
 import { getGridNumericOperators } from '@mui/x-data-grid';
 
 const PRIMARY_COLOR = "#00897B";
 const PRIMARY_HOVER = "#00796B";
 
-
 const ManageLibBooks = () => {
   const genreOptions = [
-  "Fiction",
-  "Non-Fiction",
-  "Science Fiction",
-  "Fantasy",
-  "Mystery",
-  "Biography",
-  "Romance",
-  "Horror",
-  "Self-Help",
-  "History",
-];
+    "Fiction",
+    "Non-Fiction",
+    "Science Fiction",
+    "Fantasy",
+    "Mystery",
+    "Biography",
+    "Romance",
+    "Horror",
+    "Self-Help",
+    "History",
+  ];
 
   const [books, setBooks] = useState([]);
   const [filteredBooks, setFilteredBooks] = useState([]);
@@ -50,14 +58,20 @@ const ManageLibBooks = () => {
   const [formData, setFormData] = useState({
     title: "",
     author: "",
+    description: "",
     genre: "",
     publication_date: "",
     total_copies: 0,
     copies_available: 0,
+    overdue_days: 14,
     image_url: "",
   });
   const [imagePreview, setImagePreview] = useState("");
-  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success"
+  });
 
   const fetchBooks = async () => {
     try {
@@ -67,7 +81,11 @@ const ManageLibBooks = () => {
       setFilteredBooks(response.data);
     } catch (error) {
       console.error("Error fetching books:", error);
-      setSnackbar({ open: true, message: "Failed to load books", severity: "error" });
+      setSnackbar({
+        open: true,
+        message: "Failed to load books",
+        severity: "error"
+      });
     } finally {
       setLoading(false);
     }
@@ -96,10 +114,12 @@ const ManageLibBooks = () => {
     setFormData({
       title: "",
       author: "",
+      description: "",
       genre: "",
       publication_date: "",
       total_copies: 0,
       copies_available: 0,
+      overdue_days: 14,
       image_url: "",
     });
     setImagePreview("");
@@ -108,16 +128,17 @@ const ManageLibBooks = () => {
 
   const handleEditBook = (book) => {
     const rawDate = new Date(book.publication_date);
-    const formattedDate = rawDate.toISOString().slice(0, 16); 
-
+    const formattedDate = rawDate.toISOString().slice(0, 10); // yyyy-mm-dd
     setEditingBook(book);
     setFormData({
       title: book.title,
       author: book.author,
+      description: book.description || "",
       genre: book.genre,
       publication_date: formattedDate,
       total_copies: book.total_copies,
       copies_available: book.copies_available,
+      overdue_days: book.overdue_days || 14,
       image_url: book.image_url,
     });
     setImagePreview(book.image_url ? `http://localhost:8080${book.image_url}` : "");
@@ -133,13 +154,20 @@ const ManageLibBooks = () => {
             Authorization: token ? `${token}` : "",
           },
         };
-
         await axios.delete(`http://localhost:8080/books/${bookId}`, config);
-        setSnackbar({ open: true, message: "Book deleted successfully", severity: "success" });
+        setSnackbar({
+          open: true,
+          message: "Book deleted successfully",
+          severity: "success"
+        });
         await fetchBooks();
       } catch (error) {
         console.error("Error deleting book:", error);
-        setSnackbar({ open: true, message: "Failed to delete book", severity: "error" });
+        setSnackbar({
+          open: true,
+          message: "Failed to delete book",
+          severity: "error"
+        });
       }
     }
   };
@@ -151,10 +179,12 @@ const ManageLibBooks = () => {
     setFormData({
       title: "",
       author: "",
+      description: "",
       genre: "",
       publication_date: "",
       total_copies: 0,
       copies_available: 0,
+      overdue_days: 14,
       image_url: "",
     });
   };
@@ -170,21 +200,28 @@ const ManageLibBooks = () => {
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      
-      if (!file.type.startsWith('image/')) {
-        setSnackbar({ open: true, message: "Please select a valid image file", severity: "error" });
+      if (!file.type.startsWith("image/")) {
+        setSnackbar({
+          open: true,
+          message: "Please select a valid image file",
+          severity: "error"
+        });
         return;
       }
-
-      
       if (file.size > 5 * 1024 * 1024) {
-        setSnackbar({ open: true, message: "Image size should be less than 5MB", severity: "error" });
+        setSnackbar({
+          open: true,
+          message: "Image size should be less than 5MB",
+          severity: "error"
+        });
         return;
       }
-
       const reader = new FileReader();
       reader.onloadend = () => {
-        setFormData((prevData) => ({ ...prevData, image_url: reader.result }));
+        setFormData((prevData) => ({
+          ...prevData,
+          image_url: reader.result
+        }));
         setImagePreview(reader.result);
       };
       reader.readAsDataURL(file);
@@ -193,26 +230,45 @@ const ManageLibBooks = () => {
 
   const validateForm = () => {
     if (!formData.title.trim()) {
-      setSnackbar({ open: true, message: "Title is required", severity: "error" });
+      setSnackbar({
+        open: true,
+        message: "Title is required",
+        severity: "error"
+      });
       return false;
     }
     if (!formData.author.trim()) {
-      setSnackbar({ open: true, message: "Author is required", severity: "error" });
+      setSnackbar({
+        open: true,
+        message: "Author is required",
+        severity: "error"
+      });
       return false;
     }
     if (!formData.genre.trim()) {
-      setSnackbar({ open: true, message: "Genre is required", severity: "error" });
+      setSnackbar({
+        open: true,
+        message: "Genre is required",
+        severity: "error"
+      });
       return false;
     }
     if (formData.total_copies < 0) {
-      setSnackbar({ open: true, message: "Total copies cannot be negative", severity: "error" });
+      setSnackbar({
+        open: true,
+        message: "Total copies cannot be negative",
+        severity: "error"
+      });
       return false;
     }
-    if (formData.copies_available < 0) {
-      setSnackbar({ open: true, message: "Available copies cannot be negative", severity: "error" });
+    if (formData.overdue_days <= 0) {
+      setSnackbar({
+        open: true,
+        message: "Overdue days must be greater than 0",
+        severity: "error"
+      });
       return false;
     }
-   
     return true;
   };
 
@@ -229,31 +285,28 @@ const ManageLibBooks = () => {
         },
       };
 
-      
-      let formattedDate = formData.publication_date;
-      if (formattedDate && formattedDate.includes("T")) {
-        const [datePart, timePart] = formattedDate.split("T");
-        const timeWithoutSeconds = timePart.slice(0, 5); 
-        formattedDate = `${datePart}T${timeWithoutSeconds}:00Z`;
-      }
-
       const cleanedFormData = {
         ...formData,
-        publication_date: formattedDate || new Date().toISOString(),
+        publication_date: formData.publication_date || new Date().toISOString().slice(0, 10),
         total_copies: Number(formData.total_copies),
-        copies_available: Number(formData.copies_available),
+        copies_available: Number(formData.total_copies),
+        overdue_days: Number(formData.overdue_days),
       };
 
       if (editingBook) {
-        await axios.put(
-          `http://localhost:8080/books/${editingBook.id}`,
-          cleanedFormData,
-          config
-        );
-        setSnackbar({ open: true, message: "Book updated successfully", severity: "success" });
+        await axios.put(`http://localhost:8080/books/${editingBook.id}`, cleanedFormData, config);
+        setSnackbar({
+          open: true,
+          message: "Book updated successfully",
+          severity: "success"
+        });
       } else {
         await axios.post("http://localhost:8080/books/", cleanedFormData, config);
-        setSnackbar({ open: true, message: "Book added successfully", severity: "success" });
+        setSnackbar({
+          open: true,
+          message: "Book added successfully",
+          severity: "success"
+        });
       }
 
       await fetchBooks();
@@ -261,10 +314,33 @@ const ManageLibBooks = () => {
     } catch (error) {
       console.error("Error saving book:", error);
       const errorMessage = error.response?.data?.message || "Failed to save book";
-      setSnackbar({ open: true, message: errorMessage, severity: "error" });
+      setSnackbar({
+        open: true,
+        message: errorMessage,
+        severity: "error"
+      });
     } finally {
       setLoading(false);
     }
+  };
+
+  const getOverdueDaysChip = (overdueDays) => {
+    let color = "success";
+    let label = `${overdueDays} days`;
+    if (overdueDays <= 7) {
+      color = "error";
+    } else if (overdueDays <= 14) {
+      color = "warning";
+    }
+    return (
+      <Chip
+        icon={<Schedule />}
+        label={label}
+        color={color}
+        size="small"
+        variant="outlined"
+      />
+    );
   };
 
   const columns = [
@@ -272,10 +348,10 @@ const ManageLibBooks = () => {
     {
       field: "image_url",
       headerName: "Image",
-      sortable: false,
-  filterable: false,
-  disableColumnMenu: true,
       width: 100,
+      sortable: false,
+      filterable: false,
+      disableColumnMenu: true,
       renderCell: (params) =>
         params.value ? (
           <img
@@ -289,7 +365,7 @@ const ManageLibBooks = () => {
               border: "1px solid #ccc",
             }}
             onError={(e) => {
-              e.target.src = "/placeholder-book.png"; 
+              e.target.src = "/placeholder-book.png";
               e.target.alt = "No image";
             }}
           />
@@ -312,28 +388,44 @@ const ManageLibBooks = () => {
           </Box>
         ),
     },
-    { field: "title", headerName: "Title", flex: 1, minWidth: 200 },
-    { field: "author", headerName: "Author", flex: 1, minWidth: 150 },
+    { field: "title", headerName: "Title", flex: 1, minWidth: 100 },
+    { field: "author", headerName: "Author", flex: 1, minWidth: 100 },
     { field: "genre", headerName: "Genre", flex: 0.8, minWidth: 120 },
-    { 
-      field: "publication_date", 
-      headerName: "Published", 
-      flex: 1, 
+    {
+      field: "publication_date",
+      headerName: "Published",
+      flex: 1,
       minWidth: 150,
       renderCell: (params) => {
         const date = new Date(params.value);
         return date.toLocaleDateString();
-      }
+      },
     },
-    { field: "total_copies", headerName: "Total", width: 80 ,filterOperators: getGridNumericOperators()},
-    { field: "copies_available", headerName: "Available", width: 90 ,filterOperators: getGridNumericOperators()},
+    {
+      field: "total_copies",
+      headerName: "Total",
+      width: 80,
+      filterOperators: getGridNumericOperators()
+    },
+    {
+      field: "copies_available",
+      headerName: "Available",
+      width: 90,
+      filterOperators: getGridNumericOperators()
+    },
+    {
+      field: "overdue_days",
+      headerName: "Return Period",
+      width: 130,
+      filterOperators: getGridNumericOperators(),
+      renderCell: (params) => getOverdueDaysChip(params.value || 14),
+    },
     {
       field: "actions",
       headerName: "Actions",
       sortable: false,
-  filterable: false,
-  disableColumnMenu: true,
-
+      filterable: false,
+      disableColumnMenu: true,
       renderCell: (params) => (
         <Box>
           <Tooltip title="Edit Book">
@@ -346,7 +438,7 @@ const ManageLibBooks = () => {
             </IconButton>
           </Tooltip>
           <Tooltip title="Delete Book">
-            <IconButton 
+            <IconButton
               onClick={() => handleDeleteBook(params.row.id)}
               sx={{ color: "#d32f2f" }}
               size="small"
@@ -362,7 +454,7 @@ const ManageLibBooks = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      {/* Header */}
+      {/* Header + Button */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4" fontWeight={600} color={PRIMARY_COLOR}>
           Manage Books
@@ -371,18 +463,18 @@ const ManageLibBooks = () => {
           variant="contained"
           startIcon={<Add />}
           onClick={handleOpenAdd}
-          sx={{ 
-            backgroundColor: PRIMARY_COLOR, 
+          sx={{
+            backgroundColor: PRIMARY_COLOR,
             "&:hover": { backgroundColor: PRIMARY_HOVER },
             borderRadius: 2,
-            px: 3
+            px: 3,
           }}
         >
           Add New Book
         </Button>
       </Box>
 
-     
+      {/* Search Bar */}
       <TextField
         fullWidth
         variant="outlined"
@@ -406,7 +498,7 @@ const ManageLibBooks = () => {
         sx={{ mb: 3, backgroundColor: "#fff", borderRadius: 2 }}
       />
 
-     
+      {/* Book Table */}
       <Card sx={{ borderRadius: 2, boxShadow: 2 }}>
         <DataGrid
           rows={filteredBooks}
@@ -414,13 +506,11 @@ const ManageLibBooks = () => {
           autoHeight
           loading={loading}
           disableRowSelectionOnClick
-          sx={{ 
+          sx={{
             border: 0,
-            '& .MuiDataGrid-cell': {
-              borderBottom: '1px solid #f0f0f0',
-            },
-            '& .MuiDataGrid-columnHeaders': {
-              backgroundColor: '#f8f9fa',
+            "& .MuiDataGrid-cell": { borderBottom: "1px solid #f0f0f0" },
+            "& .MuiDataGrid-columnHeaders": {
+              backgroundColor: "#f8f9fa",
               fontWeight: 600,
             },
           }}
@@ -434,7 +524,7 @@ const ManageLibBooks = () => {
         />
       </Card>
 
-      
+      {/* Book Dialog */}
       <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth="md">
         <DialogTitle sx={{ pb: 1 }}>
           <Typography variant="h5" fontWeight={600}>
@@ -452,7 +542,7 @@ const ManageLibBooks = () => {
                   onChange={handleFormChange}
                   fullWidth
                   required
-                  variant="outlined"
+                  sx={{ mt: 2 }}
                 />
                 <TextField
                   label="Author"
@@ -461,60 +551,72 @@ const ManageLibBooks = () => {
                   onChange={handleFormChange}
                   fullWidth
                   required
-                  variant="outlined"
                 />
                 <TextField
-  select
-  label="Genre"
-  name="genre"
-  value={formData.genre}
-  onChange={handleFormChange}
-  fullWidth
-  required
->
-  {genreOptions.map((option) => (
-    <MenuItem key={option} value={option}>
-      {option}
-    </MenuItem>
-  ))}
-</TextField>
-
+                  label="Description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleFormChange}
+                  fullWidth
+                  multiline
+                  rows={3}
+                  placeholder="Enter book description..."
+                />
+                <TextField
+                  select
+                  label="Genre"
+                  name="genre"
+                  value={formData.genre}
+                  onChange={handleFormChange}
+                  fullWidth
+                  required
+                >
+                  {genreOptions.map((option) => (
+                    <MenuItem key={option} value={option}>
+                      {option}
+                    </MenuItem>
+                  ))}
+                </TextField>
                 <TextField
                   label="Publication Date"
                   name="publication_date"
-                  type="datetime-local"
+                  type="date"
                   value={formData.publication_date}
                   onChange={handleFormChange}
                   fullWidth
                   InputLabelProps={{ shrink: true }}
-                  variant="outlined"
                 />
-                <Box sx={{ display: "flex", gap: 2 }}>
-                  <TextField
-                    label="Total Copies"
-                    name="total_copies"
-                    type="number"
-                    value={formData.total_copies}
-                    onChange={handleFormChange}
-                    fullWidth
-                    inputProps={{ min: 0 }}
-                    variant="outlined"
-                  />
-                  <TextField
-                    label="Available Copies"
-                    name="copies_available"
-                    type="number"
-                    value={formData.copies_available}
-                    onChange={handleFormChange}
-                    fullWidth
-                    inputProps={{ min: 0 }}
-                    variant="outlined"
-                  />
-                </Box>
+                <TextField
+                  label="Total Copies"
+                  name="total_copies"
+                  type="number"
+                  value={formData.total_copies}
+                  onChange={handleFormChange}
+                  fullWidth
+                  inputProps={{ min: 0 }}
+                />
+                <TextField
+                  label="Return Period (Days)"
+                  name="overdue_days"
+                  type="number"
+                  value={formData.overdue_days}
+                  onChange={handleFormChange}
+                  fullWidth
+                  required
+                  inputProps={{ min: 1 }}
+                  helperText="Number of days members have to return the book before it becomes overdue"
+                />
               </Box>
             </Grid>
             <Grid item xs={12} md={4}>
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 2, alignItems: "center" }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 2,
+                  alignItems: "center",
+                }}
+              >
                 {imagePreview && (
                   <Card sx={{ width: "100%", maxWidth: 200 }}>
                     <CardMedia
@@ -529,8 +631,16 @@ const ManageLibBooks = () => {
                   variant="outlined"
                   component="label"
                   startIcon={<CloudUpload />}
-                  sx={{ width: "100%", color: PRIMARY_COLOR, borderColor: PRIMARY_COLOR,
-                        "&:hover": { borderColor: PRIMARY_HOVER, color: PRIMARY_HOVER } }}
+                  sx={{
+                    mt: 2,
+                    width: "100%",
+                    color: PRIMARY_COLOR,
+                    borderColor: PRIMARY_COLOR,
+                    "&:hover": {
+                      borderColor: PRIMARY_HOVER,
+                      color: PRIMARY_HOVER,
+                    },
+                  }}
                 >
                   {imagePreview ? "Change Image" : "Upload Image"}
                   <input
@@ -556,18 +666,17 @@ const ManageLibBooks = () => {
             variant="contained"
             onClick={handleFormSubmit}
             disabled={loading}
-            sx={{ 
+            sx={{
               backgroundColor: PRIMARY_COLOR,
               "&:hover": { backgroundColor: PRIMARY_HOVER },
-              minWidth: 100
+              minWidth: 100,
             }}
           >
-            {loading ? "Saving..." : (editingBook ? "Update Book" : "Add Book")}
+            {loading ? "Saving..." : editingBook ? "Update Book" : "Add Book"}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar for notifications */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={4000}

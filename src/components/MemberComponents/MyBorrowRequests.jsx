@@ -44,7 +44,7 @@ const MyBorrowRequests = () => {
 
   return (
     <Box p={3}>
-      <Typography variant="h5" fontWeight={600} color="#1976d2" gutterBottom>
+      <Typography variant="h4" fontWeight={600} color="#1976d2" gutterBottom>
         📩 My Borrow Requests
       </Typography>
 
