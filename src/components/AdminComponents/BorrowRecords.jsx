@@ -10,9 +10,11 @@ import {
   IconButton,
   Snackbar,
   Alert,
+  Button,
+  Tooltip,
 } from '@mui/material';
-import { DataGrid } from '@mui/x-data-grid';
-import { Search, Clear } from '@mui/icons-material';
+import { DataGrid, GridToolbar } from '@mui/x-data-grid';
+import { Search, Clear, Download } from '@mui/icons-material';
 import axios from 'axios';
 import dayjs from 'dayjs';
 
@@ -22,7 +24,11 @@ const BorrowRecords = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'error' });
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'error',
+  });
 
   const fetchBorrowHistory = async () => {
     try {
@@ -51,7 +57,11 @@ const BorrowRecords = () => {
     } catch (err) {
       console.error('Failed to fetch borrow history:', err);
       setError('Failed to load borrow records');
-      setSnackbar({ open: true, message: 'Failed to load borrow records', severity: 'error' });
+      setSnackbar({
+        open: true,
+        message: 'Failed to load borrow records',
+        severity: 'error',
+      });
     } finally {
       setLoading(false);
     }
@@ -75,6 +85,56 @@ const BorrowRecords = () => {
       );
     }
   }, [searchTerm, records]);
+
+  // CSV Export Function
+  const handleExportCSV = () => {
+    try {
+      // Define CSV headers
+      const headers = ['ID', 'Book Title', 'Member Name', 'Member Email', 'Borrowed At', 'Returned At'];
+      
+      // Convert data to CSV format
+      const csvContent = [
+        headers.join(','), // Header row
+        ...filteredRecords.map(record => [
+          record.id,
+          `"${record.bookTitle.replace(/"/g, '""')}"`, // Escape quotes in book titles
+          `"${record.memberName.replace(/"/g, '""')}"`, // Escape quotes in names
+          `"${record.memberEmail}"`,
+          `"${record.borrowedAt}"`,
+          `"${record.returnedAt || 'Not Returned'}"`
+        ].join(','))
+      ].join('\n');
+
+      // Add BOM for proper UTF-8 encoding
+      const BOM = '\uFEFF';
+      const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      
+      if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `borrow_records_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
+
+      setSnackbar({ 
+        open: true, 
+        message: `${filteredRecords.length} records exported successfully`, 
+        severity: "success" 
+      });
+    } catch (error) {
+      console.error("Error exporting CSV:", error);
+      setSnackbar({ 
+        open: true, 
+        message: "Failed to export CSV", 
+        severity: "error" 
+      });
+    }
+  };
 
   const columns = [
     { field: 'id', headerName: 'ID', width: 80 },
@@ -101,9 +161,33 @@ const BorrowRecords = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" fontWeight={600} sx={{ color: '#3F51B5' }} mb={3}>
-        Borrowing History
-      </Typography>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Typography variant="h4" fontWeight={600} sx={{ color: '#3F51B5' }}>
+          Borrowing History
+        </Typography>
+        <Tooltip title="Export filtered records to CSV">
+          <Button
+            variant="outlined"
+            startIcon={<Download />}
+            onClick={handleExportCSV}
+            disabled={loading || filteredRecords.length === 0}
+            sx={{ 
+              borderColor: "#3F51B5", 
+              color: "#3F51B5",
+              '&:hover': {
+                borderColor: "#3F51B5",
+                backgroundColor: "rgba(63, 81, 181, 0.04)"
+              },
+              '&:disabled': {
+                borderColor: "#ccc",
+                color: "#999"
+              }
+            }}
+          >
+            Export CSV 
+          </Button>
+        </Tooltip>
+      </Box>
 
       <TextField
         fullWidth
@@ -139,6 +223,21 @@ const BorrowRecords = () => {
             columns={columns}
             autoHeight
             disableRowSelectionOnClick
+            slots={{ toolbar: GridToolbar }}
+            slotProps={{
+              toolbar: {
+                showQuickFilter: false,
+                csvOptions: {
+                  fileName: 'borrow_records',
+                  utf8WithBom: true,
+                  delimiter: ',',
+                },
+                printOptions: {
+                  hideFooter: true,
+                  hideToolbar: true,
+                },
+              },
+            }}
             sx={{
               border: 0,
               '& .MuiDataGrid-cell': {
@@ -149,8 +248,13 @@ const BorrowRecords = () => {
                 fontWeight: 600,
                 color: '#3F51B5',
               },
+              '& .MuiDataGrid-toolbarContainer': {
+                justifyContent: 'flex-end',
+                px: 2,
+                py: 1,
+              },
             }}
-            pageSizeOptions={[5, 10, 25]}
+            pageSizeOptions={[5, 10, 25, 50]}
             initialState={{
               pagination: {
                 paginationModel: { pageSize: 10 },
