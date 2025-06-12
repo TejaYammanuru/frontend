@@ -20,9 +20,9 @@ import AlarmIcon from "@mui/icons-material/Alarm";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
-
+import DashboardIcon from '@mui/icons-material/Dashboard';
 const statCards = [
-  { label: "Total Borrowed", key: "total_borrowed", icon: <BookmarkAddedIcon />, color: "#3f51b5" },
+  { label: "Total Borrowed", key: "total_borrowed", icon: <BookmarkAddedIcon />, color: "#1976d2" },
   { label: "Currently Borrowed", key: "currently_borrowed", icon: <LibraryBooksIcon />, color: "#0288d1" },
   { label: "Overdue Books", key: "overdue_books", icon: <AlarmIcon />, color: "#d32f2f" },
   { label: "Return Requests", key: "return_requested", icon: <AutorenewIcon />, color: "#f9a825" },
@@ -34,7 +34,7 @@ const MemberOverview = () => {
   const [overview, setOverview] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const name= localStorage.getItem("userName");
+  const name = localStorage.getItem("userName");
 
   useEffect(() => {
     const fetchOverview = async () => {
@@ -73,12 +73,17 @@ const MemberOverview = () => {
   }
 
   return (
-    <Box p={{ xs: 2, md: 4 }}>
-      <Typography variant="h4" fontWeight={700} color="primary.main" gutterBottom>
-       Hi {name} 👋 Welcome to Your Dashboard
+    <Box p={{ xs: 2, md: 4 }} sx={{ backgroundColor: "#f9f9f9", minHeight: "100vh" }}>
+      <Typography variant="h4" fontWeight="bold" color="#1976d2" gutterBottom>
+       💫 Welcome Back, Tejaswini! 
       </Typography>
 
-      <Grid container spacing={3} sx={{ mt: 2, mb: 4 }}>
+      <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 3 }}>
+        Here’s a quick summary of your borrowing activity
+      </Typography>
+
+      {/* Stat Cards */}
+      <Grid container spacing={3} sx={{ mb: 5 }}>
         {statCards.map((card) => (
           <Grid item xs={12} sm={6} md={4} key={card.key}>
             <Card
@@ -88,15 +93,18 @@ const MemberOverview = () => {
                 px: 2,
                 py: 3,
                 borderRadius: 3,
-                boxShadow: 3,
+                boxShadow: 4,
+                bgcolor: "#fff",
+                transition: "transform 0.2s",
+                "&:hover": { transform: "translateY(-4px)" },
               }}
             >
               <Avatar
                 sx={{
                   bgcolor: card.color,
                   mr: 2,
-                  width: 48,
-                  height: 48,
+                  width: 56,
+                  height: 56,
                 }}
               >
                 {card.icon}
@@ -105,11 +113,11 @@ const MemberOverview = () => {
                 <Typography
                   variant="subtitle2"
                   color="text.secondary"
-                  sx={{ fontSize: "0.85rem" }}
+                  sx={{ fontSize: "0.9rem" }}
                 >
                   {card.label}
                 </Typography>
-                <Typography variant="h6" fontWeight={600}>
+                <Typography variant="h6" fontWeight={700}>
                   {overview[card.key]}
                 </Typography>
               </Box>
@@ -119,9 +127,9 @@ const MemberOverview = () => {
       </Grid>
 
       {/* Recent Activity */}
-      <Divider sx={{ mb: 4 }} />
-      <Typography variant="h6" fontWeight={700} mb={2}>
-        Recent Borrowed Books
+      <Divider sx={{ mb: 3 }} />
+      <Typography variant="h5" fontWeight={700} color="#1976d2" gutterBottom>
+        📚 Recent Borrowed Books
       </Typography>
 
       {overview.recent_borrows?.length === 0 ? (
@@ -130,17 +138,35 @@ const MemberOverview = () => {
         <Grid container spacing={3}>
           {overview.recent_borrows.map((record, index) => (
             <Grid item xs={12} sm={6} md={4} key={index}>
-              <Card sx={{ px: 2, py: 2, borderLeft: "5px solid #1976d2" }}>
+              <Card
+                sx={{
+                  borderLeft: "6px solid #1976d2",
+                  px: 2,
+                  py: 2,
+                  borderRadius: 2,
+                  boxShadow: 2,
+                  bgcolor: "#fff",
+                }}
+              >
                 <Typography variant="subtitle1" fontWeight={600}>
                   {record.title}
                 </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mt: 0.5 }}
+                >
                   Borrowed on: {dayjs(record.borrowed_at).format("DD MMM YYYY")}
                 </Typography>
                 <Chip
                   label="Borrowed"
                   size="small"
-                  sx={{ mt: 1, bgcolor: "#e3f2fd", color: "#1976d2", fontWeight: 500 }}
+                  sx={{
+                    mt: 1,
+                    bgcolor: "#e3f2fd",
+                    color: "#1976d2",
+                    fontWeight: 500,
+                  }}
                 />
               </Card>
             </Grid>

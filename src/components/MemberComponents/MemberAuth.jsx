@@ -18,7 +18,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { useNavigate } from "react-router-dom";
 
 const MemberAuth = () => {
-  const [tab, setTab] = useState(0); 
+  const [tab, setTab] = useState(0);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
@@ -41,16 +41,16 @@ const MemberAuth = () => {
     resetForm();
   };
 
- 
   const extractErrorMessage = (data) => {
-    // if (data.errors && Array.isArray(data.errors)) {
-    //   return data.errors.join(", ");
-    // } else if (data.response.data.error) {
-    //   return data.response.data.error;
-    // } else if (typeof data === 'string') {
-    //   return data;
-    // }
-    return "Invalid Email or password.";
+    if (data?.errors && Array.isArray(data.errors)) {
+      return data.errors.join(", ");
+    } else if (data?.message) {
+      return data.message;
+    } else if (typeof data === "string") {
+      return data;
+    } else {
+      return "Something went wrong. Please try again.";
+    }
   };
 
   const handleLogin = async (e) => {
@@ -68,17 +68,15 @@ const MemberAuth = () => {
       });
 
       const data = await response.json();
-     
-      localStorage.setItem("userName", data.user.name);
       const token = response.headers.get("Authorization");
 
-      if (response.ok && token) {
+      if (response.ok && token && data.user) {
         localStorage.setItem("token", token);
+        localStorage.setItem("userName", data.user.name);
         setSuccess("Login successful! Redirecting...");
         setTimeout(() => navigate("/member/dashboard/overview"), 1500);
       } else {
-        
-        const errorMessage = extractErrorMessage(data);
+        const errorMessage = "Invalid Email or password."
         setError(errorMessage);
       }
     } catch (err) {
@@ -116,16 +114,14 @@ const MemberAuth = () => {
       });
 
       const data = await response.json();
-      
-      localStorage.setItem("userName", data.user.name);
       const token = response.headers.get("Authorization");
 
-      if (response.ok && token) {
+      if (response.ok && token && data.user) {
         localStorage.setItem("token", token);
+        localStorage.setItem("userName", data.user.name);
         setSuccess("Signup successful! Redirecting...");
         setTimeout(() => navigate("/member/dashboard/overview"), 1500);
       } else {
-        // Extract error message using the helper function
         const errorMessage = extractErrorMessage(data);
         setError(errorMessage);
       }
@@ -180,14 +176,14 @@ const MemberAuth = () => {
       </Tabs>
 
       <Paper elevation={4} sx={{ p: 4, borderRadius: 3 }}>
-        <Collapse in={error !== null}>
+        <Collapse in={!!error}>
           <Alert
             severity="error"
-            sx={{ 
+            sx={{
               mb: 3,
-              backgroundColor: '#f8d7da',
-              color: '#721c24',
-              border: '1px solid #f5c6cb'
+              backgroundColor: "#f8d7da",
+              color: "#721c24",
+              border: "1px solid #f5c6cb",
             }}
             action={
               <IconButton onClick={() => setError(null)} size="small">
@@ -199,14 +195,14 @@ const MemberAuth = () => {
           </Alert>
         </Collapse>
 
-        <Collapse in={success !== null}>
+        <Collapse in={!!success}>
           <Alert
             severity="success"
-            sx={{ 
+            sx={{
               mb: 3,
-              backgroundColor: '#d4edda',
-              color: '#155724',
-              border: '1px solid #c3e6cb'
+              backgroundColor: "#d4edda",
+              color: "#155724",
+              border: "1px solid #c3e6cb",
             }}
             action={
               <IconButton onClick={() => setSuccess(null)} size="small">

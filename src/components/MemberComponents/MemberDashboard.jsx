@@ -48,6 +48,7 @@ import axios from "axios";
 import ReturnBooks from "./ReturnBooks"
 import MemberOverdueBooks from "./MemberOverdueBooks";
 import MemberOverview from "./MemberOverview";
+import DashboardIcon from '@mui/icons-material/Dashboard';
 
 const drawerWidth = 240;
 const miniDrawerWidth = 64;
@@ -171,30 +172,29 @@ const MemberDashboard = () => {
   };
 
   const handleProfileUpdateSubmit = async () => {
-  
-  if (userData.password && userData.password.length < 8) {
-    showAlert("Password must be at least 8 characters long", "error");
+  const { name, email, current_password, password, password_confirmation } = userData;
+
+  if (password && password.length < 8) {
+    showAlert("New password must be at least 8 characters long", "error");
     return;
   }
 
-  
-  if (userData.password && userData.password !== userData.password_confirmation) {
-    showAlert("Password and confirmation do not match", "error");
+  if (password && password !== password_confirmation) {
+    showAlert("New password and confirmation do not match", "error");
     return;
   }
 
   const token = localStorage.getItem("token");
 
-  
   const updatePayload = {
-    name: userData.name,
-    email: userData.email,
+    name,
+    email,
   };
 
-  
-  if (userData.password && userData.password.trim() !== "") {
-    updatePayload.password = userData.password;
-    updatePayload.password_confirmation = userData.password_confirmation;
+  if (current_password && password) {
+    updatePayload.current_password = current_password;
+    updatePayload.password = password;
+    updatePayload.password_confirmation = password_confirmation;
   }
 
   try {
@@ -212,34 +212,30 @@ const MemberDashboard = () => {
       showAlert("Profile updated successfully!", "success");
       setTimeout(() => {
         setUpdateDialogOpen(false);
-      }, 1500); 
+      }, 1500);
     }
   } catch (error) {
     console.error("Update error", error);
-    
-    
-    let errorMessage = "Profile update failed. Please try again.";
-    
-    if (error.response && error.response.data) {
-      const errorData = error.response.data;
-      
-    
-      if (errorData.errors && Array.isArray(errorData.errors)) {
-        errorMessage = errorData.errors.join(", ");
-      } else if (errorData.message) {
-        errorMessage = errorData.message;
-      } else if (typeof errorData === 'string') {
-        errorMessage = errorData;
+
+    let errorMessage = "Profile update failed.";
+
+    if (error.response?.data) {
+      const data = error.response.data;
+      if (Array.isArray(data.errors)) {
+        errorMessage = data.errors.join(", ");
+      } else if (data.message) {
+        errorMessage = data.message;
       }
     }
-    
+
     showAlert(errorMessage, "error");
   }
 };
 
+
    
   const menuItems = [
-    { text: "Dashboard", icon: <MenuBook />, path: "/member/dashboard/overview" },
+    { text: "Dashboard", icon: <DashboardIcon/>, path: "/member/dashboard/overview" },
   { text: "View Books", icon: <MenuBook />, path: "/member/dashboard/books" },
   { text: "My Borrow Requests", icon: <MenuBook />, path: "/member/dashboard/requests" },
   { text: "Notifications", icon: <NotificationsNone />, path: "/member/dashboard/notifications" },
@@ -434,61 +430,63 @@ const MemberDashboard = () => {
       </Box>
 
      
-      <Dialog open={updateDialogOpen} onClose={() => setUpdateDialogOpen(false)} maxWidth="xs" fullWidth>
-        <DialogTitle>Update Profile</DialogTitle>
-        <DialogContent>
-          
-          {updateAlert.show && (
-            <Alert 
-              severity={updateAlert.severity} 
-              sx={{ 
-                mb: 2,
-                backgroundColor: updateAlert.severity === 'success' ? '#d4edda' : '#f8d7da',
-                color: updateAlert.severity === 'success' ? '#155724' : '#721c24',
-                border: updateAlert.severity === 'success' ? '1px solid #c3e6cb' : '1px solid #f5c6cb'
-              }}
-            >
-              {updateAlert.message}
-            </Alert>
-          )}
-          
-          <TextField
-            margin="dense"
-            label="Name"
-            fullWidth
-            value={userData.name}
-            onChange={(e) => setUserData({ ...userData, name: e.target.value })}
-          />
-          <TextField
-            margin="dense"
-            label="Email"
-            fullWidth
-            value={userData.email}
-            onChange={(e) => setUserData({ ...userData, email: e.target.value })}
-          />
-          <TextField
-            margin="dense"
-            label="Password"
-            type="password"
-            fullWidth
-            value={userData.password}
-            onChange={(e) => setUserData({ ...userData, password: e.target.value })}
-            helperText="Leave blank to keep current password. Minimum 8 characters if changing."
-          />
-          <TextField
-            margin="dense"
-            label="Confirm Password"
-            type="password"
-            fullWidth
-            value={userData.password_confirmation}
-            onChange={(e) => setUserData({ ...userData, password_confirmation: e.target.value })}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setUpdateDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleProfileUpdateSubmit} variant="contained">Update</Button>
-        </DialogActions>
-      </Dialog>
+     <Dialog open={updateDialogOpen} onClose={() => setUpdateDialogOpen(false)} maxWidth="xs" fullWidth>
+  <DialogTitle>Update Profile</DialogTitle>
+  <DialogContent>
+    {updateAlert.show && (
+      <Alert 
+        severity={updateAlert.severity} 
+        sx={{ mb: 2 }}
+      >
+        {updateAlert.message}
+      </Alert>
+    )}
+    <TextField
+      margin="dense"
+      label="Name"
+      fullWidth
+      value={userData.name}
+      onChange={(e) => setUserData({ ...userData, name: e.target.value })}
+    />
+    <TextField
+      margin="dense"
+      label="Email"
+      fullWidth
+      value={userData.email}
+      onChange={(e) => setUserData({ ...userData, email: e.target.value })}
+    />
+    <TextField
+      margin="dense"
+      label="Current Password"
+      type="password"
+      fullWidth
+      value={userData.current_password || ""}
+      onChange={(e) => setUserData({ ...userData, current_password: e.target.value })}
+    />
+    <TextField
+      margin="dense"
+      label="New Password"
+      type="password"
+      fullWidth
+      value={userData.password}
+      onChange={(e) => setUserData({ ...userData, password: e.target.value })}
+      helperText="Leave blank if not changing password"
+    />
+    <TextField
+      margin="dense"
+      label="Confirm New Password"
+      type="password"
+      fullWidth
+      value={userData.password_confirmation}
+      onChange={(e) => setUserData({ ...userData, password_confirmation: e.target.value })}
+    />
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={() => setUpdateDialogOpen(false)}>Cancel</Button>
+    <Button onClick={handleProfileUpdateSubmit} variant="contained">Update</Button>
+  </DialogActions>
+</Dialog>
+
     </Box>
   );
 };
