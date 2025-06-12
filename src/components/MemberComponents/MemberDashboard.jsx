@@ -66,7 +66,7 @@ const MemberDashboard = () => {
   const [updateAlert, setUpdateAlert] = useState({
     show: false,
     message: "",
-    severity: "success", // success or error
+    severity: "success", 
   });
 
   const navigate = useNavigate();
@@ -77,7 +77,7 @@ const MemberDashboard = () => {
   const handleMenuClose = () => setAnchorEl(null);
   const handleDrawerToggle = () => setDrawerOpen(!drawerOpen);
 
-  // Function to show alert for 3 seconds
+  
   const showAlert = (message, severity) => {
     setUpdateAlert({
       show: true,
@@ -235,7 +235,7 @@ const MemberDashboard = () => {
 };
 
   const menuItems = [
-  { text: "View/Search Books", icon: <MenuBook />, path: "/member/dashboard/books" },
+  { text: "View Books", icon: <MenuBook />, path: "/member/dashboard/books" },
   { text: "My Borrow Requests", icon: <MenuBook />, path: "/member/dashboard/requests" },
   { text: "Notifications", icon: <NotificationsNone />, path: "/member/dashboard/notifications" },
   { text: "Overdue Books", icon: <History />, path: "/member/dashboard/overdue" },
@@ -428,11 +428,11 @@ const MemberDashboard = () => {
         </Routes>
       </Box>
 
-      {/* Update Profile Dialog */}
+     
       <Dialog open={updateDialogOpen} onClose={() => setUpdateDialogOpen(false)} maxWidth="xs" fullWidth>
         <DialogTitle>Update Profile</DialogTitle>
         <DialogContent>
-          {/* Alert positioned at top of dialog content */}
+          
           {updateAlert.show && (
             <Alert 
               severity={updateAlert.severity} 

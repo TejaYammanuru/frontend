@@ -41,16 +41,16 @@ const MemberAuth = () => {
     resetForm();
   };
 
-  // Function to extract error message from backend response
+ 
   const extractErrorMessage = (data) => {
-    if (data.errors && Array.isArray(data.errors)) {
-      return data.errors.join(", ");
-    } else if (data.message) {
-      return data.message;
-    } else if (typeof data === 'string') {
-      return data;
-    }
-    return "An unexpected error occurred.";
+    // if (data.errors && Array.isArray(data.errors)) {
+    //   return data.errors.join(", ");
+    // } else if (data.response.data.error) {
+    //   return data.response.data.error;
+    // } else if (typeof data === 'string') {
+    //   return data;
+    // }
+    return "Invalid Email or password.";
   };
 
   const handleLogin = async (e) => {
@@ -75,7 +75,7 @@ const MemberAuth = () => {
         setSuccess("Login successful! Redirecting...");
         setTimeout(() => navigate("/member/dashboard"), 1500);
       } else {
-        // Extract error message using the helper function
+        
         const errorMessage = extractErrorMessage(data);
         setError(errorMessage);
       }

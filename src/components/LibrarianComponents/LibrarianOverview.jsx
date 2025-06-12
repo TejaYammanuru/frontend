@@ -125,10 +125,10 @@ const LibrarianOverview = () => {
   }
 
   return (
-    <Box sx={{ minHeight: "100vh", py: 4, background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.04)} 0%, ${alpha(theme.palette.secondary.main, 0.02)} 100%)` }}>
+    <Box sx={{ minHeight: "100vh", py: 4}}>
       <Container maxWidth="lg">
         <Typography variant="h4" fontWeight={700} color="#00897B" gutterBottom>
-           Librarian Dashboard Overview
+           Librarian Dashboard
         </Typography>
 
         <Grid container spacing={3}>

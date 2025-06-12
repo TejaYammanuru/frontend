@@ -31,6 +31,7 @@ import {
   PublishedWithChanges,
 } from "@mui/icons-material";
 import { useNavigate, useLocation, Outlet } from "react-router-dom";
+import DashboardIcon from '@mui/icons-material/Dashboard';
 
 const drawerWidth = 240;
 const miniDrawerWidth = 64;
@@ -55,7 +56,7 @@ const LibrarianDashboard = () => {
       {
       
       text: "Dashboard",
-      icon: <LibraryBooks />,
+      icon: <DashboardIcon />,
       path: "/librarian/dashboard",
     },
     {
