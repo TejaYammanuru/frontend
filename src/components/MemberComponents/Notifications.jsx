@@ -94,7 +94,7 @@ const Notifications = () => {
   return (
     <Container maxWidth="md" sx={{ mt: 4 }}>
       <Typography variant="h4" fontWeight={700} color="primary" gutterBottom>
-        Member Notifications
+         Notifications
       </Typography>
 
       <Paper sx={{ mt: 2, borderRadius: 2 }}>

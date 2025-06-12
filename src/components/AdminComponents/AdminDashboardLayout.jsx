@@ -98,10 +98,10 @@ const AdminDashboardLayout = () => {
             </Avatar>
           </IconButton>
           <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
-            <MenuItem disabled>
+            {/* <MenuItem disabled>
               <Person fontSize="small" sx={{ mr: 1 }} /> Admin Profile
             </MenuItem>
-            <Divider />
+            <Divider /> */}
             <MenuItem onClick={handleLogout} sx={{ color: "#d32f2f" }}>
               <Logout fontSize="small" sx={{ mr: 1 }} /> Logout
             </MenuItem>

@@ -120,15 +120,17 @@ const LibrarianDashboard = () => {
               <Person fontSize="small" />
             </Avatar>
           </IconButton>
-          <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
-            <MenuItem disabled>
-              <Person fontSize="small" sx={{ mr: 1 }} /> Librarian Profile
-            </MenuItem>
-            <Divider />
-            <MenuItem onClick={handleLogout} sx={{ color: "#d32f2f" }}>
-              <Logout fontSize="small" sx={{ mr: 1 }} /> Logout
-            </MenuItem>
-          </Menu>
+        <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
+  {/* <MenuItem disabled> */}
+    {/* <Person fontSize="small" sx={{ mr: 1 }} /> Librarian Profile */}
+  {/* </MenuItem> */}
+  {/* <Divider /> */}
+  <MenuItem onClick={handleLogout} sx={{ color: "#d32f2f" }}>
+    <Logout fontSize="small" sx={{ mr: 1 }} /> Logout
+  </MenuItem>
+</Menu>
+
+
         </Toolbar>
       </AppBar>
 
