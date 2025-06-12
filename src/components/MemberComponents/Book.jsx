@@ -8,15 +8,27 @@ import {
   Alert,
   Divider,
   Chip,
+  Card,
+  CardMedia,
+  CardContent,
+  Grid,
 } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
 const Book = () => {
   const { bookId } = useParams();
   const [book, setBook] = useState(null);
+  const [recommendedBooks, setRecommendedBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [requestMessage, setRequestMessage] = useState({ type: "", text: "" });
   const [isRequested, setIsRequested] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+  window.scrollTo(0, 0);
+}, [bookId]);
+
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -25,8 +37,7 @@ const Book = () => {
         if (!response.ok) throw new Error("Failed to fetch book data");
         const data = await response.json();
         setBook(data);
-        
-        // Check if user has already requested this book
+
         const token = localStorage.getItem("token");
         if (token) {
           const checkResponse = await fetch(`http://localhost:8080/borrow/check-request/${bookId}`, {
@@ -37,6 +48,19 @@ const Book = () => {
           if (checkResponse.ok) {
             const checkData = await checkResponse.json();
             setIsRequested(checkData.hasRequested || false);
+          }
+
+          const allBooksResponse = await fetch(`http://localhost:8080/books/`, {
+            headers: { Authorization: token },
+          });
+          if (allBooksResponse.ok) {
+            const allBooks = await allBooksResponse.json();
+            const filtered = allBooks.filter(
+              (b) =>
+                b.id !== parseInt(bookId) &&
+                (b.author === data.author || b.genre === data.genre)
+            );
+            setRecommendedBooks(filtered);
           }
         }
       } catch (err) {
@@ -108,7 +132,7 @@ const Book = () => {
 
   return (
     <Box sx={{ maxWidth: 800, mx: "auto", py: 6, px: 3 }}>
-     
+      {/* Book Info */}
       <Box sx={{ textAlign: "center", mb: 4 }}>
         <Box
           component="img"
@@ -125,72 +149,35 @@ const Book = () => {
         />
       </Box>
 
-      <Typography
-        variant="h3"
-        sx={{
-          textAlign: "center",
-          fontWeight: 700,
-          color: "#1f2937",
-          mb: 2,
-          fontSize: { xs: "2rem", sm: "2.5rem", md: "3rem" },
-          lineHeight: 1.2,
-        }}
-      >
+      <Typography variant="h3" sx={{ textAlign: "center", fontWeight: 700, color: "#1f2937", mb: 2 }}>
         {book.title}
       </Typography>
 
-      <Typography
-        variant="h5"
-        sx={{
-          textAlign: "center",
-          color: "#6b7280",
-          fontWeight: 400,
-          mb: 1,
-          fontSize: { xs: "1.2rem", sm: "1.5rem" },
-        }}
-      >
+      <Typography variant="h5" sx={{ textAlign: "center", color: "#6b7280", fontWeight: 400, mb: 1 }}>
         by {book.author}
       </Typography>
 
       <Box sx={{ textAlign: "center", mb: 4 }}>
-        <Chip
-          label={book.genre}
-          sx={{
-            backgroundColor: "#dbeafe",
-            color: "#1e40af",
-            fontWeight: 500,
-            fontSize: "0.9rem",
-            height: 32,
-          }}
-        />
+        <Chip label={book.genre} sx={{ backgroundColor: "#dbeafe", color: "#1e40af", fontWeight: 500 }} />
       </Box>
 
-      {/* Description Section */}
+      {/* Description */}
       {book.description && (
         <>
           <Divider sx={{ my: 4, borderColor: "#e5e7eb" }} />
-          
           <Box sx={{ mb: 4 }}>
             <Typography variant="h6" sx={{ color: "#374151", fontWeight: 600, mb: 2 }}>
               Description
             </Typography>
-            <Typography 
-              variant="body1" 
-              sx={{ 
-                color: "#4b5563", 
-                lineHeight: 1.6,
-                fontSize: "1rem",
-                textAlign: "justify"
-              }}
-            >
+            <Typography variant="body1" sx={{ color: "#4b5563", lineHeight: 1.6, textAlign: "justify" }}>
               {book.description}
             </Typography>
           </Box>
         </>
       )}
 
+      {/* Book Details */}
       <Divider sx={{ my: 4, borderColor: "#e5e7eb" }} />
-
       <Box sx={{ mb: 4 }}>
         <Typography variant="h6" sx={{ color: "#374151", fontWeight: 600, mb: 3 }}>
           Book Details
@@ -224,8 +211,8 @@ const Book = () => {
         </Box>
       </Box>
 
+      {/* Request Button */}
       <Divider sx={{ my: 4, borderColor: "#e5e7eb" }} />
-
       {requestMessage.text && (
         <Box sx={{ mb: 3 }}>
           <Alert severity={requestMessage.type} sx={{ borderRadius: 2 }}>
@@ -256,11 +243,45 @@ const Book = () => {
             },
           }}
         >
-          {isRequested
-            ? "Request Submitted"
-            : "Request This Book"}
+          {isRequested ? "Request Submitted" : "Request This Book"}
         </Button>
       </Box>
+
+      {/* Recommended Books */}
+      {recommendedBooks.length > 0 && (
+        <>
+          <Divider sx={{ my: 6, borderColor: "#e5e7eb" }} />
+          <Typography variant="h5" sx={{ fontWeight: 600, mb: 3, color: "#1e40af" }}>
+            Recommended Books
+          </Typography>
+          <Grid container spacing={3}>
+            {recommendedBooks.map((rec) => (
+              <Grid item xs={12} sm={6} md={4} key={rec.id}
+onClick={() => navigate(`/member/dashboard/books/${rec.id}`)}
+sx={{ cursor: "pointer" }}>
+
+                <Card sx={{ borderRadius: 3, boxShadow: 2 }}>
+                  <CardMedia
+                    component="img"
+                    image={`http://localhost:8080${rec.image_url}`}
+                    alt={rec.title}
+                    sx={{ height: 180, objectFit: "cover", borderRadius: "12px 12px 0 0" }}
+                  />
+                  <CardContent>
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: "#1f2937" }}>
+                      {rec.title}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: "#6b7280", mb: 1 }}>
+                      by {rec.author}
+                    </Typography>
+                    <Chip label={rec.genre} size="small" sx={{ backgroundColor: "#dbeafe", color: "#1e40af" }} />
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </>
+      )}
     </Box>
   );
 };

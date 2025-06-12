@@ -89,6 +89,7 @@ const LibrarianOverview = () => {
   const [error, setError] = useState("");
   const theme = useTheme();
   const token = localStorage.getItem("token");
+  const name=localStorage.getItem("userName");
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -128,7 +129,7 @@ const LibrarianOverview = () => {
     <Box sx={{ minHeight: "100vh", py: 4}}>
       <Container maxWidth="lg">
         <Typography variant="h4" fontWeight={700} color="#00897B" gutterBottom>
-           Librarian Dashboard
+           Hi , {name} 👋 Welcome to Your Dashboard
         </Typography>
 
         <Grid container spacing={3}>

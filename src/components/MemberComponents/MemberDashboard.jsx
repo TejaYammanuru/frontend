@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {  useState } from "react";
 import {
   AppBar,
   Toolbar,
@@ -47,6 +47,7 @@ import MyBorrowRequests from "./MyBorrowRequests";
 import axios from "axios";
 import ReturnBooks from "./ReturnBooks"
 import MemberOverdueBooks from "./MemberOverdueBooks";
+import MemberOverview from "./MemberOverview";
 
 const drawerWidth = 240;
 const miniDrawerWidth = 64;
@@ -56,6 +57,7 @@ const MemberDashboard = () => {
   const [drawerOpen, setDrawerOpen] = useState(true);
   const [logoutError, setLogoutError] = useState(null);
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
+ 
   const [userData, setUserData] = useState({
     name: "",
     email: "",
@@ -105,6 +107,7 @@ const MemberDashboard = () => {
 
       if (response.status === 200 || response.status === 204) {
         localStorage.removeItem("token");
+        localStorage.removeItem("userName");
         navigate("/");
       } else {
         setLogoutError("Logout failed. Please try again.");
@@ -131,7 +134,7 @@ const MemberDashboard = () => {
           password_confirmation: "",
         });
         setUpdateDialogOpen(true);
-        // Clear any previous alerts
+        
         setUpdateAlert({
           show: false,
           message: "",
@@ -234,7 +237,9 @@ const MemberDashboard = () => {
   }
 };
 
+   
   const menuItems = [
+    { text: "Dashboard", icon: <MenuBook />, path: "/member/dashboard/overview" },
   { text: "View Books", icon: <MenuBook />, path: "/member/dashboard/books" },
   { text: "My Borrow Requests", icon: <MenuBook />, path: "/member/dashboard/requests" },
   { text: "Notifications", icon: <NotificationsNone />, path: "/member/dashboard/notifications" },
@@ -416,7 +421,7 @@ const MemberDashboard = () => {
         )}
 
         <Routes>
-          <Route path="/" element={<BooksPage />} />
+          <Route path="/overview" element={<MemberOverview />} />
 
           <Route path="/books" element={<BooksPage />} />
           <Route path="/books/:bookId" element={<Book />} />

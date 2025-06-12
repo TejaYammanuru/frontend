@@ -8,8 +8,9 @@ import {
   Card,
   Snackbar,
   Alert,
+  Button,
 } from "@mui/material";
-import { Search, Clear } from "@mui/icons-material";
+import { Search, Clear, Download } from "@mui/icons-material";
 import { DataGrid } from "@mui/x-data-grid";
 import axios from "axios";
 
@@ -54,6 +55,51 @@ const ManageMembers = () => {
     }
   }, [searchTerm, members]);
 
+  // CSV Export Function
+  const handleExportCSV = () => {
+    try {
+      // Define CSV headers
+      const headers = ['ID', 'Name', 'Email'];
+      
+      // Convert data to CSV format
+      const csvContent = [
+        headers.join(','), // Header row
+        ...filteredMembers.map(member => [
+          member.id,
+          `"${member.name.replace(/"/g, '""')}"`, // Escape quotes in name
+          `"${member.email.replace(/"/g, '""')}"` // Escape quotes in email
+        ].join(','))
+      ].join('\n');
+
+      // Create blob and download
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      
+      if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `members_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+
+      setSnackbar({ 
+        open: true, 
+        message: `${filteredMembers.length} members exported successfully`, 
+        severity: "success" 
+      });
+    } catch (error) {
+      console.error("Error exporting CSV:", error);
+      setSnackbar({ 
+        open: true, 
+        message: "Failed to export CSV", 
+        severity: "error" 
+      });
+    }
+  };
+
   const columns = [
     { field: "id", headerName: "ID", width: 80 },
     { field: "name", headerName: "Name", flex: 1, minWidth: 150 },
@@ -62,10 +108,30 @@ const ManageMembers = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" fontWeight={600} sx={{ color: "#3F51B5" }} mb={3}>
-        Members
-      </Typography>
+      {/* Header + Export Button */}
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Typography variant="h4" fontWeight={600} sx={{ color: "#3F51B5" }}>
+          Members
+        </Typography>
+        <Button
+          variant="outlined"
+          startIcon={<Download />}
+          onClick={handleExportCSV}
+          disabled={filteredMembers.length === 0}
+          sx={{ 
+            borderColor: "#3F51B5", 
+            color: "#3F51B5",
+            "&:hover": {
+              borderColor: "#364494",
+              backgroundColor: "rgba(63, 81, 181, 0.04)"
+            }
+          }}
+        >
+          Export CSV
+        </Button>
+      </Box>
 
+      {/* Search Bar */}
       <TextField
         fullWidth
         variant="outlined"
@@ -89,6 +155,7 @@ const ManageMembers = () => {
         sx={{ mb: 3, backgroundColor: "#fff", borderRadius: 2 }}
       />
 
+      {/* Members Table */}
       <Card sx={{ borderRadius: 2, boxShadow: 2 }}>
         <DataGrid
           rows={filteredMembers}
@@ -116,6 +183,7 @@ const ManageMembers = () => {
         />
       </Card>
 
+      {/* Snackbar for notifications */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={4000}

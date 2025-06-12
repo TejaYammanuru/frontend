@@ -15,7 +15,7 @@ import {
   InputAdornment,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
-import { Edit, Delete, Add, Search, Clear } from "@mui/icons-material";
+import { Edit, Delete, Add, Search, Clear, Download } from "@mui/icons-material";
 import axios from "axios";
 
 const ManageLibrarians = () => {
@@ -77,6 +77,51 @@ const ManageLibrarians = () => {
 
   const handleClearSearch = () => {
     setSearchTerm("");
+  };
+
+  // CSV Export Function
+  const handleExportCSV = () => {
+    try {
+      // Define CSV headers
+      const headers = ['ID', 'Name', 'Email'];
+      
+      // Convert data to CSV format
+      const csvContent = [
+        headers.join(','), // Header row
+        ...filteredLibrarians.map(librarian => [
+          librarian.id,
+          `"${librarian.name}"`, // Wrap in quotes to handle commas in names
+          `"${librarian.email}"`  // Wrap in quotes to handle commas in emails
+        ].join(','))
+      ].join('\n');
+
+      // Create blob and download
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      
+      if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `librarians_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+
+      setSnackbar({ 
+        open: true, 
+        message: `${filteredLibrarians.length} librarians exported successfully`, 
+        severity: "success" 
+      });
+    } catch (error) {
+      console.error("Error exporting CSV:", error);
+      setSnackbar({ 
+        open: true, 
+        message: "Failed to export CSV", 
+        severity: "error" 
+      });
+    }
   };
 
   const handleOpenAdd = () => {
@@ -251,14 +296,32 @@ const ManageLibrarians = () => {
         <Typography variant="h4" fontWeight={600} color="#3f51b5">
           Manage Librarians
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={handleOpenAdd}
-          sx={{ backgroundColor: "#3f51b5" }}
-        >
-          Add Librarian
-        </Button>
+        <Box display="flex" gap={1}>
+          <Button
+            variant="outlined"
+            startIcon={<Download />}
+            onClick={handleExportCSV}
+            disabled={filteredLibrarians.length === 0}
+            sx={{ 
+              borderColor: "#3f51b5", 
+              color: "#3f51b5",
+              '&:hover': {
+                borderColor: "#3f51b5",
+                backgroundColor: "rgba(63, 81, 181, 0.04)"
+              }
+            }}
+          >
+            Export CSV
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={handleOpenAdd}
+            sx={{ backgroundColor: "#3f51b5" }}
+          >
+            Add Librarian
+          </Button>
+        </Box>
       </Box>
 
       <Box mb={2}>
@@ -300,44 +363,43 @@ const ManageLibrarians = () => {
         <DialogTitle>{editingLibrarian ? "Edit Librarian" : "Add New Librarian"}</DialogTitle>
         <DialogContent dividers>
           <TextField
-  fullWidth
-  label="Name"
-  margin="normal"
-  required
-  value={formData.name}
-  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-/>
-<TextField
-  fullWidth
-  label="Email"
-  margin="normal"
-  type="email"
-  required
-  value={formData.email}
-  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-/>
-<TextField
-  fullWidth
-  label={editingLibrarian ? "New Password (optional)" : "Password"}
-  margin="normal"
-  type="password"
-  required={!editingLibrarian}
-  value={formData.password}
-  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-/>
-<TextField
-  fullWidth
-  label="Confirm Password"
-  margin="normal"
-  type="password"
-  required={!editingLibrarian}
-  value={formData.password_confirmation}
-  onChange={(e) => setFormData({ ...formData, password_confirmation: e.target.value })}
-  helperText={
-    editingLibrarian ? "Leave both password fields blank to keep current password" : ""
-  }
-/>
-
+            fullWidth
+            label="Name"
+            margin="normal"
+            required
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          />
+          <TextField
+            fullWidth
+            label="Email"
+            margin="normal"
+            type="email"
+            required
+            value={formData.email}
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          />
+          <TextField
+            fullWidth
+            label={editingLibrarian ? "New Password (optional)" : "Password"}
+            margin="normal"
+            type="password"
+            required={!editingLibrarian}
+            value={formData.password}
+            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+          />
+          <TextField
+            fullWidth
+            label="Confirm Password"
+            margin="normal"
+            type="password"
+            required={!editingLibrarian}
+            value={formData.password_confirmation}
+            onChange={(e) => setFormData({ ...formData, password_confirmation: e.target.value })}
+            helperText={
+              editingLibrarian ? "Leave both password fields blank to keep current password" : ""
+            }
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenDialog(false)}>Cancel</Button>

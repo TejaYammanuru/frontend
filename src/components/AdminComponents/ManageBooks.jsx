@@ -20,7 +20,7 @@ import {
   Chip,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
-import { Edit, Delete, Add, Search, Clear, CloudUpload, Schedule } from "@mui/icons-material";
+import { Edit, Delete, Add, Search, Clear, CloudUpload, Schedule, Download } from "@mui/icons-material";
 import axios from "axios";
 import { getGridNumericOperators } from '@mui/x-data-grid';
 
@@ -92,6 +92,61 @@ const ManageBooks = () => {
       );
     }
   }, [searchTerm, books]);
+
+  // CSV Export Function
+  const handleExportCSV = () => {
+    try {
+      // Define CSV headers
+      const headers = [
+        'ID', 'Title', 'Author', 'Genre', 'Description', 
+        'Publication Date', 'Total Copies', 'Available Copies', 
+        'Return Period (Days)'
+      ];
+      
+      // Convert data to CSV format
+      const csvContent = [
+        headers.join(','), // Header row
+        ...filteredBooks.map(book => [
+          book.id,
+          `"${book.title.replace(/"/g, '""')}"`, // Escape quotes in title
+          `"${book.author.replace(/"/g, '""')}"`, // Escape quotes in author
+          `"${book.genre}"`,
+          `"${(book.description || '').replace(/"/g, '""')}"`, // Handle description
+          new Date(book.publication_date).toLocaleDateString(),
+          book.total_copies,
+          book.copies_available,
+          book.overdue_days || 14
+        ].join(','))
+      ].join('\n');
+
+      // Create blob and download
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      
+      if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `books_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+
+      setSnackbar({ 
+        open: true, 
+        message: `${filteredBooks.length} books exported successfully`, 
+        severity: "success" 
+      });
+    } catch (error) {
+      console.error("Error exporting CSV:", error);
+      setSnackbar({ 
+        open: true, 
+        message: "Failed to export CSV", 
+        severity: "error" 
+      });
+    }
+  };
 
   const handleOpenAdd = () => {
     setEditingBook(null);
@@ -384,24 +439,42 @@ const ManageBooks = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      {/* Header + Button */}
+      {/* Header + Buttons */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4" fontWeight={600} color={PRIMARY_COLOR}>
           Manage Books
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={handleOpenAdd}
-          sx={{
-            backgroundColor: PRIMARY_COLOR,
-            "&:hover": { backgroundColor: PRIMARY_HOVER },
-            borderRadius: 2,
-            px: 3,
-          }}
-        >
-          Add New Book
-        </Button>
+        <Box display="flex" gap={1}>
+          <Button
+            variant="outlined"
+            startIcon={<Download />}
+            onClick={handleExportCSV}
+            disabled={filteredBooks.length === 0}
+            sx={{ 
+              borderColor: PRIMARY_COLOR, 
+              color: PRIMARY_COLOR,
+              "&:hover": {
+                borderColor: PRIMARY_HOVER,
+                backgroundColor: "rgba(63, 81, 181, 0.04)"
+              }
+            }}
+          >
+            Export CSV
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={handleOpenAdd}
+            sx={{
+              backgroundColor: PRIMARY_COLOR,
+              "&:hover": { backgroundColor: PRIMARY_HOVER },
+              borderRadius: 2,
+              px: 3,
+            }}
+          >
+            Add New Book
+          </Button>
+        </Box>
       </Box>
 
       {/* Search Bar */}

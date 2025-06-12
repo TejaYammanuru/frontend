@@ -20,6 +20,7 @@ const LibrarianLogin = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -41,6 +42,8 @@ const LibrarianLogin = () => {
       });
 
       const data = await response.json();
+      console.log(data);
+      localStorage.setItem("userName", data.user.name);
       const token = response.headers.get("Authorization");
 
       if (response.ok && token) {

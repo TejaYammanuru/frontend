@@ -52,6 +52,7 @@ const AdminDashboardLayout = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("userName");
     navigate("/");
   };
 

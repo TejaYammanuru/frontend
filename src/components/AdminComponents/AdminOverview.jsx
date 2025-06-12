@@ -32,6 +32,7 @@ const AdminOverview = () => {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const theme = useTheme();
+  const name=localStorage.getItem("userName");
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -199,11 +200,11 @@ const AdminOverview = () => {
             textAlign: 'left'
           }}
         >
-          Admin Dashboard
+          Hi , {name} 👋 Welcome to Your Admin Dashboard
         </Typography>
 
         {/* Stats Grid - Keeping your cards exactly as they are */}
-        <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid container spacing={3} sx={{ mb: 4}}  >
           <Grid item xs={12} sm={6} lg={3}>
             <StatCard
               title="Librarians"
@@ -211,10 +212,11 @@ const AdminOverview = () => {
               icon={<LibrarianIcon fontSize="large" />}
               color={theme.palette.primary.main}
               description="Total staff members"
+             
             />
           </Grid>
           
-          <Grid item xs={12} sm={6} lg={3}>
+          <Grid item xs={12} sm={6} lg={3} >
             <StatCard
               title="Members"
               value={dashboardData?.num_members}
@@ -226,7 +228,7 @@ const AdminOverview = () => {
           
           <Grid item xs={12} sm={6} lg={3}>
             <StatCard
-              title="Total Copies"
+              title="Total Copies" 
               value={dashboardData?.total_copies}
               icon={<BookIcon fontSize="large" />}
               color={theme.palette.info.main}

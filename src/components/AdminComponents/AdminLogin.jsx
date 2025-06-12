@@ -41,6 +41,8 @@ const AdminLogin = () => {
       });
 
       const data = await response.json();
+     
+      localStorage.setItem("userName", data.user.name);
       const token = response.headers.get("Authorization");
 
       if (response.ok && token) {

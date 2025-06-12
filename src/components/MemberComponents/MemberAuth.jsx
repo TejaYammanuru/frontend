@@ -68,12 +68,14 @@ const MemberAuth = () => {
       });
 
       const data = await response.json();
+     
+      localStorage.setItem("userName", data.user.name);
       const token = response.headers.get("Authorization");
 
       if (response.ok && token) {
         localStorage.setItem("token", token);
         setSuccess("Login successful! Redirecting...");
-        setTimeout(() => navigate("/member/dashboard"), 1500);
+        setTimeout(() => navigate("/member/dashboard/overview"), 1500);
       } else {
         
         const errorMessage = extractErrorMessage(data);
@@ -114,12 +116,14 @@ const MemberAuth = () => {
       });
 
       const data = await response.json();
+      
+      localStorage.setItem("userName", data.user.name);
       const token = response.headers.get("Authorization");
 
       if (response.ok && token) {
         localStorage.setItem("token", token);
         setSuccess("Signup successful! Redirecting...");
-        setTimeout(() => navigate("/member/dashboard"), 1500);
+        setTimeout(() => navigate("/member/dashboard/overview"), 1500);
       } else {
         // Extract error message using the helper function
         const errorMessage = extractErrorMessage(data);
