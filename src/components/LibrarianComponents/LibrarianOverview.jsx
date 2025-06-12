@@ -11,6 +11,8 @@ import {
   LinearProgress,
   useTheme,
   Container,
+  Tooltip,
+  Divider,
 } from "@mui/material";
 import {
   LibraryBooks,
@@ -22,6 +24,9 @@ import {
 } from "@mui/icons-material";
 import { alpha } from "@mui/system";
 import axios from "axios";
+import { PieChart, Pie, Cell, Tooltip as RechartTooltip, ResponsiveContainer } from "recharts";
+
+const COLORS = ["#00897B", "#43A047", "#1E88E5", "#F9A825", "#D32F2F", "#6D4C41"];
 
 const StatCard = ({ title, value, icon, color, max }) => {
   const theme = useTheme();
@@ -29,30 +34,32 @@ const StatCard = ({ title, value, icon, color, max }) => {
 
   return (
     <Card
-      elevation={0}
+      elevation={2}
       sx={{
         height: "100%",
-        background: `linear-gradient(135deg, ${alpha(color, 0.1)} 0%, ${alpha(
+        background: `linear-gradient(135deg, ${alpha(color, 0.08)} 0%, ${alpha(
           color,
-          0.05
+          0.03
         )} 100%)`,
         border: `1px solid ${alpha(color, 0.2)}`,
+        borderRadius: 4,
         transition: "all 0.3s ease-in-out",
         "&:hover": {
           transform: "translateY(-4px)",
           boxShadow: `0 8px 25px ${alpha(color, 0.15)}`,
-          border: `1px solid ${alpha(color, 0.3)}`,
         },
       }}
     >
       <CardContent sx={{ p: 3 }}>
         <Box display="flex" alignItems="center" justifyContent="space-between">
           <Box>
-            <Typography variant="h6" sx={{ color, fontWeight: 600, mb: 1 }}>
-              {title}
-            </Typography>
+            <Tooltip title={title}>
+              <Typography variant="subtitle2" sx={{ color, fontWeight: 600, mb: 0.5 }}>
+                {title}
+              </Typography>
+            </Tooltip>
             <Typography
-              variant="h4"
+              variant="h5"
               sx={{ fontWeight: 700, color: theme.palette.text.primary, mb: 1 }}
             >
               {value}
@@ -61,7 +68,7 @@ const StatCard = ({ title, value, icon, color, max }) => {
               <LinearProgress
                 variant="determinate"
                 value={percent}
-                sx={{ height: 10, borderRadius: 5 }}
+                sx={{ height: 8, borderRadius: 5 }}
                 color="primary"
               />
             )}
@@ -89,7 +96,7 @@ const LibrarianOverview = () => {
   const [error, setError] = useState("");
   const theme = useTheme();
   const token = localStorage.getItem("token");
-  const name=localStorage.getItem("userName");
+  const name = localStorage.getItem("userName");
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -125,11 +132,22 @@ const LibrarianOverview = () => {
     );
   }
 
+  const pieData = [
+    { name: "Available", value: stats.available_books },
+    { name: "Borrowed", value: stats.total_books - stats.available_books },
+  ];
+
   return (
-    <Box sx={{ minHeight: "100vh", py: 4}}>
+    <Box sx={{ minHeight: "100vh", backgroundColor: "#f5f7fa", py: 4 }}>
       <Container maxWidth="lg">
         <Typography variant="h4" fontWeight={700} color="#00897B" gutterBottom>
-           Hi , {name} 👋 Welcome to Your Dashboard
+         Welcome Back, {name}!
+        </Typography>
+
+        <Divider sx={{ my: 2 }} />
+
+        <Typography variant="h5" sx={{ fontWeight: 600, mb: 2 }} color="#00897B">
+          Key Metrics Overview
         </Typography>
 
         <Grid container spacing={3}>
@@ -170,6 +188,31 @@ const LibrarianOverview = () => {
             />
           </Grid>
         </Grid>
+
+        {/* <Box mt={5}>
+          <Typography variant="h6" fontWeight={600} gutterBottom>
+            📘 Book Availability Distribution
+          </Typography>
+          <Card sx={{ p: 2, maxWidth: 400 }}>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  label
+                  dataKey="value"
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index]} />
+                  ))}
+                </Pie>
+                <RechartTooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </Card>
+        </Box> */}
       </Container>
     </Box>
   );
