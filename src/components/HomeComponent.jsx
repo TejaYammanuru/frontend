@@ -2,38 +2,37 @@ import React from "react";
 import {
   Box,
   Button,
-  Card,
-  CardContent,
-  CardActions,
   Container,
-  Grid,
   Typography,
-  Avatar,
+  Paper,
 } from "@mui/material";
-import {
-  AdminPanelSettings,
-  School,
-  Person,
-  Login,
-} from "@mui/icons-material";
+import { Login } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
-import Footer from "./Footer"; // Make sure Footer.jsx is created and exported
+import Footer from "./Footer";
 
 const HomePage = () => {
   const navigate = useNavigate();
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh", background: "#f5f7fa" }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "100vh",
+        background: "linear-gradient(135deg, #e3f2fd, #ffffff)",
+      }}
+    >
       <Container maxWidth="md" sx={{ flexGrow: 1, py: 6 }}>
+        {/* Banner and Title */}
         <Box sx={{ textAlign: "center", mb: 6 }}>
           <Box
             sx={{
               width: "100%",
-              height: 200,
-              borderRadius: 2,
+              height: 250,
+              borderRadius: 3,
               overflow: "hidden",
               mb: 3,
-              boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+              boxShadow: 3,
             }}
           >
             <img
@@ -42,45 +41,60 @@ const HomePage = () => {
               style={{ width: "100%", height: "100%", objectFit: "cover" }}
             />
           </Box>
-          <Typography variant="h4" fontWeight="bold" gutterBottom>
+          <Typography variant="h3" fontWeight="bold" gutterBottom color="primary">
             LIBROLINK
           </Typography>
-          <Typography variant="subtitle1" color="text.secondary">
-            Manage and explore our book collection
+          <Typography variant="h6" color="text.secondary">
+            Discover. Manage. Borrow — Your Digital Library.
           </Typography>
         </Box>
 
-      <Button
-  variant="contained"
-  startIcon={<Login />}
-  onClick={() => navigate("/login")}
-  sx={{ bgcolor: "#1976d2", width: "90%", "&:hover": { bgcolor: "#0039CB" } }}
->
-  Login
-</Button>
-
-        {/* Register Prompt */}
-        <Box sx={{ textAlign: "center", mt: 5 }}>
-          <Typography variant="body2" color="text.secondary">
-            Not registered?
-            <Button
-              size="small"
-              onClick={() => navigate("/member/signup")}
-              sx={{
-                fontWeight: 600,
-                color: "#1976d2",
-                ml: 1,
-                "&:hover": { textDecoration: "underline" },
-              }}
-            >
-              Create an account
-            </Button>
+        {/* Login Card */}
+        <Paper elevation={4} sx={{ p: 4, textAlign: "center", borderRadius: 3, backgroundColor: "#ffffffcc" }}>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Ready to dive in?
           </Typography>
-        </Box>
+          <Button
+            variant="contained"
+            size="large"
+            startIcon={<Login />}
+            onClick={() => navigate("/login")}
+            sx={{
+              bgcolor: "#1976d2",
+              px: 4,
+              py: 1.5,
+              fontWeight: 600,
+              fontSize: "1rem",
+              "&:hover": { bgcolor: "#0039CB" },
+            }}
+          >
+            Login
+          </Button>
+
+          {/* Register Prompt */}
+          <Box sx={{ mt: 3 }}>
+            <Typography variant="body2" color="text.secondary">
+              New here?
+              <Button
+                size="small"
+                onClick={() => navigate("/member/signup")}
+                sx={{
+                  fontWeight: 600,
+                  color: "#1976d2",
+                  ml: 1,
+                  "&:hover": { textDecoration: "underline" },
+                }}
+              >
+                Create an account
+              </Button>
+            </Typography>
+          </Box>
+        </Paper>
       </Container>
 
-     
-      <Footer />
+      <Box mt="auto">
+        <Footer />
+      </Box>
     </Box>
   );
 };
