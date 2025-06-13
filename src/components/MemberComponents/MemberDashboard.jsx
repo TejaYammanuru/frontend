@@ -49,6 +49,8 @@ import ReturnBooks from "./ReturnBooks"
 import MemberOverdueBooks from "./MemberOverdueBooks";
 import MemberOverview from "./MemberOverview";
 import DashboardIcon from '@mui/icons-material/Dashboard';
+import logo from "../../logo.png"; 
+
 
 const drawerWidth = 240;
 const miniDrawerWidth = 64;
@@ -275,16 +277,19 @@ const MemberDashboard = () => {
             {drawerOpen ? <ChevronLeft /> : <MenuIcon />}
           </IconButton>
 
-          <Typography
-            variant="h6"
-            sx={{
-              flexGrow: 1,
-              fontWeight: 600,
-              letterSpacing: "0.5px",
-            }}
-          >
-            📚 Library Portal
-          </Typography>
+         <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
+  <img src={logo} alt="Library Logo" style={{ height: 40, marginRight: 10 }} />
+  <Typography
+    variant="h6"
+    sx={{
+      fontWeight: 600,
+      letterSpacing: "0.5px",
+    }}
+  >
+    LibroLink
+  </Typography>
+</Box>
+
 
           <IconButton color="inherit" onClick={handleMenuClick}>
             <Avatar sx={{ bgcolor: "#fff", color: "#1976d2", width: 32, height: 32 }}>

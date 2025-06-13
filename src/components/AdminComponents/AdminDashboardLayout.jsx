@@ -33,7 +33,7 @@ import {
 } from "@mui/icons-material";
 import { useNavigate, useLocation, Outlet } from "react-router-dom";
 import HistoryIcon from '@mui/icons-material/History';
-
+import logo from "../../logo.png"; 
 
 
 const drawerWidth = 240;
@@ -90,9 +90,18 @@ const AdminDashboardLayout = () => {
           >
             {drawerOpen ? <ChevronLeft /> : <MenuIcon />}
           </IconButton>
-          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600 }}>
-            🛠️ Admin Panel
-          </Typography>
+           <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
+            <img src={logo} alt="Library Logo" style={{ height: 40, marginRight: 10 }} />
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 600,
+                letterSpacing: "0.5px",
+              }}
+            >
+              LibroLink
+            </Typography>
+          </Box>
           <IconButton color="inherit" onClick={handleMenuClick}>
             <Avatar sx={{ bgcolor: "#fff", color: "#3f51b5", width: 32, height: 32 }}>
               <Person fontSize="small" />

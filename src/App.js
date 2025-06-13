@@ -1,9 +1,7 @@
 import * as React from "react";
 import { Routes, Route } from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
-import MemberLogin from "./components/MemberComponents/MemberAuth";
-import LibrarianLogin from "./components/LibrarianComponents/LibrarianLogin";
-import AdminLogin from "./components/AdminComponents/AdminLogin";
+
 import Register from "./components/MemberComponents/Register";
 import LibrarianDashboard from "./components/LibrarianComponents/LibrarianDashboard";
 import MemberDashboard from "./components/MemberComponents/MemberDashboard";
@@ -23,16 +21,18 @@ import BorrowRequests from "./components/LibrarianComponents/BorrowRequests";
 import ReturnAcknowledgement from "./components/LibrarianComponents/ReturnAcknowledgement";
 import LibrarianOverview from "./components/LibrarianComponents/LibrarianOverview";
 
-
+import LoginPage from "./pages/LoginPage";
 
 
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
-      <Route path="/admin/login" element={<AdminLogin />} />
+      {/* <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/librarian/login" element={<LibrarianLogin />} />
-      <Route path="/member/login" element={<MemberLogin />} />
+      <Route path="/member/login" element={<MemberLogin />} /> */}
+      <Route path="/login" element={<LoginPage />} />
+
       <Route path="/register" element={<Register />} />
       <Route path="/librarian/dashboard" element={<LibrarianDashboard />} />
       <Route path="/member/dashboard/*" element={<MemberDashboard />} />

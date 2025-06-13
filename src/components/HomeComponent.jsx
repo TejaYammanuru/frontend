@@ -43,134 +43,21 @@ const HomePage = () => {
             />
           </Box>
           <Typography variant="h4" fontWeight="bold" gutterBottom>
-            Online Library Portal
+            LIBROLINK
           </Typography>
           <Typography variant="subtitle1" color="text.secondary">
             Manage and explore our book collection
           </Typography>
         </Box>
 
-        <Grid container spacing={4} justifyContent="center">
-          {/* Admin Card */}
-          <Grid item xs={12} sm={6} md={4}>
-            <Card
-              sx={{
-                height: "100%",
-                display: "flex",
-                flexDirection: "column",
-                borderRadius: 2,
-                boxShadow: 3,
-                transition: "transform 0.3s",
-                "&:hover": {
-                  transform: "translateY(-5px)",
-                  boxShadow: 6,
-                },
-              }}
-            >
-              <CardContent sx={{ textAlign: "center", p: 3 }}>
-                <Avatar sx={{ bgcolor: "#3F51B5", width: 60, height: 60, mb: 2, mx: "auto" }}>
-                  <AdminPanelSettings />
-                </Avatar>
-                <Typography variant="h6" gutterBottom>
-                  Admin
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Manage books and staff
-                </Typography>
-              </CardContent>
-              <CardActions sx={{ justifyContent: "center", p: 2 }}>
-                <Button
-                  variant="contained"
-                  startIcon={<Login />}
-                  onClick={() => navigate("/admin/login")}
-                  sx={{ bgcolor: "#3F51B5", width: "90%", "&:hover": { bgcolor: "#303F9F" } }}
-                >
-                  Login
-                </Button>
-              </CardActions>
-            </Card>
-          </Grid>
-
-          {/* Librarian Card */}
-          <Grid item xs={12} sm={6} md={4}>
-            <Card
-              sx={{
-                height: "100%",
-                display: "flex",
-                flexDirection: "column",
-                borderRadius: 2,
-                boxShadow: 3,
-                transition: "transform 0.3s",
-                "&:hover": {
-                  transform: "translateY(-5px)",
-                  boxShadow: 6,
-                },
-              }}
-            >
-              <CardContent sx={{ textAlign: "center", p: 3 }}>
-                <Avatar sx={{ bgcolor: "#00897B", width: 60, height: 60, mb: 2, mx: "auto" }}>
-                  <School />
-                </Avatar>
-                <Typography variant="h6" gutterBottom>
-                  Librarian
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Manage borrowing records
-                </Typography>
-              </CardContent>
-              <CardActions sx={{ justifyContent: "center", p: 2 }}>
-                <Button
-                  variant="contained"
-                  startIcon={<Login />}
-                  onClick={() => navigate("/librarian/login")}
-                  sx={{ bgcolor: "#00897B", width: "90%", "&:hover": { bgcolor: "#00695C" } }}
-                >
-                  Login
-                </Button>
-              </CardActions>
-            </Card>
-          </Grid>
-
-          {/* Member Card */}
-          <Grid item xs={12} sm={6} md={4}>
-            <Card
-              sx={{
-                height: "100%",
-                display: "flex",
-                flexDirection: "column",
-                borderRadius: 2,
-                boxShadow: 3,
-                transition: "transform 0.3s",
-                "&:hover": {
-                  transform: "translateY(-5px)",
-                  boxShadow: 6,
-                },
-              }}
-            >
-              <CardContent sx={{ textAlign: "center", p: 3 }}>
-                <Avatar sx={{ bgcolor: "#1976d2", width: 60, height: 60, mb: 2, mx: "auto" }}>
-                  <Person />
-                </Avatar>
-                <Typography variant="h6" gutterBottom>
-                  Member
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Borrow and return books
-                </Typography>
-              </CardContent>
-              <CardActions sx={{ justifyContent: "center", p: 2 }}>
-                <Button
-                  variant="contained"
-                  startIcon={<Login />}
-                  onClick={() => navigate("/member/login")}
-                  sx={{ bgcolor: "#1976d2", width: "90%", "&:hover": { bgcolor: "#0039CB" } }}
-                >
-                  Login
-                </Button>
-              </CardActions>
-            </Card>
-          </Grid>
-        </Grid>
+      <Button
+  variant="contained"
+  startIcon={<Login />}
+  onClick={() => navigate("/login")}
+  sx={{ bgcolor: "#1976d2", width: "90%", "&:hover": { bgcolor: "#0039CB" } }}
+>
+  Login
+</Button>
 
         {/* Register Prompt */}
         <Box sx={{ textAlign: "center", mt: 5 }}>

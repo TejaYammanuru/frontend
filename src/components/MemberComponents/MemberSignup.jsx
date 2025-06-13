@@ -52,7 +52,7 @@ const MemberSignup = () => {
     if (response.ok && authToken) {
       localStorage.setItem("token", authToken); 
       setSuccessMsg("Member registered successfully!");
-      setTimeout(() => navigate("/member/dashboard"), 1000); 
+      setTimeout(() => navigate("/member/dashboard/overview"), 1000); 
     } else {
       setError(data.message || "Signup failed.");
     }
