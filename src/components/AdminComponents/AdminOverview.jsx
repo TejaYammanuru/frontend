@@ -191,16 +191,8 @@ const AdminOverview = () => {
     >
       <Container maxWidth="lg" sx={{ py: 4 }}>
         {/* Simple Header */}
-        <Typography 
-          variant="h3" 
-          sx={{ 
-            fontWeight: 700,
-            color: '#3F51B5',
-            mb: 4,
-            textAlign: 'left'
-          }}
-        >
-          Hi , {name} 👋 Welcome to Your Admin Dashboard
+       <Typography variant="h4" fontWeight={600} color="#3F51B5" sx={{ mb: 2}} >
+         Welcome Back, {name}!
         </Typography>
 
         {/* Stats Grid - Keeping your cards exactly as they are */}

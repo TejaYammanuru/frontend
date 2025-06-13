@@ -28,6 +28,7 @@ import {
   Clear,
   CloudUpload,
   Schedule,
+  FileDownload,
 } from "@mui/icons-material";
 import axios from "axios";
 import { getGridNumericOperators } from '@mui/x-data-grid';
@@ -108,6 +109,71 @@ const ManageLibBooks = () => {
       );
     }
   }, [searchTerm, books]);
+
+  // CSV Export Function
+  const exportToCSV = () => {
+    try {
+      // Define CSV headers
+      const headers = [
+        'ID',
+        'Title',
+        'Author',
+        'Genre',
+        'Description',
+        'Publication Date',
+        'Total Copies',
+        'Available Copies',
+        'Return Period (Days)',
+        'Image URL'
+      ];
+
+      // Convert books data to CSV format
+      const csvData = filteredBooks.map(book => [
+        book.id,
+        `"${book.title.replace(/"/g, '""')}"`, // Escape quotes in title
+        `"${book.author.replace(/"/g, '""')}"`, // Escape quotes in author
+        book.genre,
+        `"${(book.description || '').replace(/"/g, '""')}"`, // Escape quotes in description
+        new Date(book.publication_date).toLocaleDateString(),
+        book.total_copies,
+        book.copies_available,
+        book.overdue_days || 14,
+        book.image_url || ''
+      ]);
+
+      // Combine headers and data
+      const csvContent = [headers, ...csvData]
+        .map(row => row.join(','))
+        .join('\n');
+
+      // Create and download the file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      
+      if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `library_books_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+
+      setSnackbar({
+        open: true,
+        message: `Successfully exported ${filteredBooks.length} books to CSV`,
+        severity: "success"
+      });
+    } catch (error) {
+      console.error("Error exporting CSV:", error);
+      setSnackbar({
+        open: true,
+        message: "Failed to export CSV file",
+        severity: "error"
+      });
+    }
+  };
 
   const handleOpenAdd = () => {
     setEditingBook(null);
@@ -454,24 +520,45 @@ const ManageLibBooks = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      {/* Header + Button */}
+      {/* Header + Buttons */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4" fontWeight={600} color={PRIMARY_COLOR}>
           Manage Books
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={handleOpenAdd}
-          sx={{
-            backgroundColor: PRIMARY_COLOR,
-            "&:hover": { backgroundColor: PRIMARY_HOVER },
-            borderRadius: 2,
-            px: 3,
-          }}
-        >
-          Add New Book
-        </Button>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Button
+            variant="outlined"
+            startIcon={<FileDownload />}
+            onClick={exportToCSV}
+            disabled={filteredBooks.length === 0}
+            sx={{
+              color: PRIMARY_COLOR,
+              borderColor: PRIMARY_COLOR,
+              "&:hover": { 
+                borderColor: PRIMARY_HOVER,
+                color: PRIMARY_HOVER,
+                backgroundColor: 'rgba(0, 137, 123, 0.04)'
+              },
+              borderRadius: 2,
+              px: 3,
+            }}
+          >
+            Export CSV
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={handleOpenAdd}
+            sx={{
+              backgroundColor: PRIMARY_COLOR,
+              "&:hover": { backgroundColor: PRIMARY_HOVER },
+              borderRadius: 2,
+              px: 3,
+            }}
+          >
+            Add New Book
+          </Button>
+        </Box>
       </Box>
 
       {/* Search Bar */}

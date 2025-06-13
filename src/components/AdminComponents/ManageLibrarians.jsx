@@ -291,7 +291,7 @@ const ManageLibrarians = () => {
   ];
 
   return (
-    <Box>
+    <Box sx={{ p: 3 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h4" fontWeight={600} color="#3f51b5">
           Manage Librarians
