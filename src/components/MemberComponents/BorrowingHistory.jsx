@@ -20,32 +20,42 @@ import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import AssignmentReturnIcon from '@mui/icons-material/AssignmentReturn';
 
 const BorrowHistory = () => {
-  const [history, setHistory] = useState([]);
+  const [records, setRecords] = useState([]);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [totalRecords, setTotalRecords] = useState(0);
   const [pageSize, setPageSize] = useState(5);
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(0); // zero-indexed for frontend
 
   const token = localStorage.getItem('token');
   const primaryBlue = '#1976d2';
 
-  useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const response = await axios.get('http://localhost:8080/borrow/history', {
-          headers: {
-            Authorization: `${token}`,
-          },
-        });
-        setHistory(response.data);
-      } catch (error) {
-        console.error('Error fetching borrow history:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchHistory = async (pageNum = 0, limit = 5) => {
+    try {
+      setLoading(true);
+      const response = await axios.get('http://localhost:8080/borrow/history', {
+        headers: { Authorization: token },
+        params: {
+          page: pageNum + 1, // backend is 1-indexed
+          limit,
+        },
+      });
 
-    fetchHistory();
-  }, [token]);
+      setRecords(response.data.records);
+      setTotalRecords(response.data.total || 0);
+      if (response.data.records.length > 0) {
+        setUser(response.data.records[0].user);
+      }
+    } catch (error) {
+      console.error('Error fetching borrow history:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchHistory(page, pageSize);
+  }, [page, pageSize]);
 
   const getDaysAgoText = (borrowedAt) => {
     const now = dayjs();
@@ -57,14 +67,13 @@ const BorrowHistory = () => {
     return `${diff} days ago`;
   };
 
-  const totalBorrowed = history.length;
-  const notReturned = history.filter((record) => !record.returned_at).length;
-  const user = history[0]?.user;
+  const totalBorrowed = totalRecords;
+  const notReturned = records.filter((record) => !record.returned_at).length;
 
-  const rows = history.map((record, index) => ({
+  const rows = records.map((record, index) => ({
     id: record.id ?? index,
-    title: record.book.title,
-    author: record.book.author,
+    title: record.book?.title,
+    author: record.book?.author,
     daysAgo: getDaysAgoText(record.borrowed_at),
     returned: record.returned_at ? 'Yes' : 'No',
   }));
@@ -155,11 +164,11 @@ const BorrowHistory = () => {
             <DataGrid
               rows={rows}
               columns={columns}
+              pagination
+              paginationMode="server"
+              rowCount={totalRecords}
               pageSize={pageSize}
               onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
-              pagination
-              paginationMode="client"
-              rowCount={rows.length}
               page={page}
               onPageChange={(newPage) => setPage(newPage)}
               loading={loading}
