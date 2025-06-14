@@ -16,20 +16,32 @@ import axios from "axios";
 
 const ManageMembers = () => {
   const [members, setMembers] = useState([]);
-  const [filteredMembers, setFilteredMembers] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [totalMembers, setTotalMembers] = useState(0);
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
-  const fetchMembers = async () => {
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: 10,
+  });
+
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const fetchMembers = async (page, limit) => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
       const response = await axios.get("http://localhost:8080/borrow/members", {
-        headers: { Authorization: token ? `${token}` : "" },
+        headers: { Authorization: token || "" },
+        params: {
+          page: page + 1, // backend is 1-based
+          limit,
+        },
       });
-      setMembers(response.data);
-      setFilteredMembers(response.data);
+
+      const { members, total } = response.data;
+      setMembers(members || []);
+      setTotalMembers(total || 0);
     } catch (error) {
       console.error("Error fetching members:", error);
       setSnackbar({ open: true, message: "Failed to load members", severity: "error" });
@@ -39,42 +51,24 @@ const ManageMembers = () => {
   };
 
   useEffect(() => {
-    fetchMembers();
-  }, []);
+    fetchMembers(paginationModel.page, paginationModel.pageSize);
+  }, [paginationModel]);
 
-  useEffect(() => {
-    if (!searchTerm.trim()) {
-      setFilteredMembers(members);
-    } else {
-      setFilteredMembers(
-        members.filter((member) =>
-          member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          member.email.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      );
-    }
-  }, [searchTerm, members]);
-
-  // CSV Export Function
   const handleExportCSV = () => {
     try {
-      // Define CSV headers
       const headers = ['ID', 'Name', 'Email'];
-      
-      // Convert data to CSV format
       const csvContent = [
-        headers.join(','), // Header row
-        ...filteredMembers.map(member => [
+        headers.join(','),
+        ...members.map(member => [
           member.id,
-          `"${member.name.replace(/"/g, '""')}"`, // Escape quotes in name
-          `"${member.email.replace(/"/g, '""')}"` // Escape quotes in email
+          `"${member.name.replace(/"/g, '""')}"`,
+          `"${member.email.replace(/"/g, '""')}"`
         ].join(','))
       ].join('\n');
 
-      // Create blob and download
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
-      
+
       if (link.download !== undefined) {
         const url = URL.createObjectURL(blob);
         link.setAttribute('href', url);
@@ -85,20 +79,27 @@ const ManageMembers = () => {
         document.body.removeChild(link);
       }
 
-      setSnackbar({ 
-        open: true, 
-        message: `${filteredMembers.length} members exported successfully`, 
-        severity: "success" 
+      setSnackbar({
+        open: true,
+        message: `${members.length} members exported successfully`,
+        severity: "success",
       });
     } catch (error) {
       console.error("Error exporting CSV:", error);
-      setSnackbar({ 
-        open: true, 
-        message: "Failed to export CSV", 
-        severity: "error" 
+      setSnackbar({
+        open: true,
+        message: "Failed to export CSV",
+        severity: "error",
       });
     }
   };
+
+  const filteredMembers = searchTerm
+    ? members.filter((member) =>
+        member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        member.email.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : members;
 
   const columns = [
     { field: "id", headerName: "ID", width: 80 },
@@ -108,7 +109,6 @@ const ManageMembers = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      {/* Header + Export Button */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4" fontWeight={600} sx={{ color: "#3F51B5" }}>
           Members
@@ -118,20 +118,19 @@ const ManageMembers = () => {
           startIcon={<Download />}
           onClick={handleExportCSV}
           disabled={filteredMembers.length === 0}
-          sx={{ 
-            borderColor: "#3F51B5", 
+          sx={{
+            borderColor: "#3F51B5",
             color: "#3F51B5",
             "&:hover": {
               borderColor: "#364494",
-              backgroundColor: "rgba(63, 81, 181, 0.04)"
-            }
+              backgroundColor: "rgba(63, 81, 181, 0.04)",
+            },
           }}
         >
           Export CSV
         </Button>
       </Box>
 
-      {/* Search Bar */}
       <TextField
         fullWidth
         variant="outlined"
@@ -155,35 +154,30 @@ const ManageMembers = () => {
         sx={{ mb: 3, backgroundColor: "#fff", borderRadius: 2 }}
       />
 
-      {/* Members Table */}
       <Card sx={{ borderRadius: 2, boxShadow: 2 }}>
         <DataGrid
           rows={filteredMembers}
           columns={columns}
-          autoHeight
+          rowCount={totalMembers}
           loading={loading}
+          paginationMode="server"
+          paginationModel={paginationModel}
+          onPaginationModelChange={setPaginationModel}
+          pageSizeOptions={[5, 10, 25]}
+          autoHeight
           disableRowSelectionOnClick
+          getRowId={(row) => row.id}
           sx={{
             border: 0,
-            '& .MuiDataGrid-cell': {
-              borderBottom: '1px solid #f0f0f0',
-            },
+            '& .MuiDataGrid-cell': { borderBottom: '1px solid #f0f0f0' },
             '& .MuiDataGrid-columnHeaders': {
               backgroundColor: '#f8f9fa',
               fontWeight: 600,
             },
           }}
-          getRowId={(row) => row.id}
-          initialState={{
-            pagination: {
-              paginationModel: { pageSize: 10 },
-            },
-          }}
-          pageSizeOptions={[5, 10, 25]}
         />
       </Card>
 
-      {/* Snackbar for notifications */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={4000}

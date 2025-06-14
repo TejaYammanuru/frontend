@@ -2,125 +2,99 @@ import React, { useEffect, useState } from "react";
 import {
   Box,
   Typography,
+  TextField,
+  IconButton,
   Button,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
-  IconButton,
   Snackbar,
-  Tooltip,
   Alert,
+  Tooltip,
   InputAdornment,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
-import { Edit, Delete, Add, Search, Clear, Download } from "@mui/icons-material";
+import {
+  Edit,
+  Delete,
+  Add,
+  Search,
+  Clear,
+  Download,
+} from "@mui/icons-material";
 import axios from "axios";
 
 const ManageLibrarians = () => {
   const [librarians, setLibrarians] = useState([]);
-  const [filteredLibrarians, setFilteredLibrarians] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
   const [editingLibrarian, setEditingLibrarian] = useState(null);
-  const [formData, setFormData] = useState({ name: "", email: "", password: "", password_confirmation: "" });
-  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    password_confirmation: "",
+  });
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
   const [deleteDialog, setDeleteDialog] = useState({ open: false, librarian: null });
 
-  useEffect(() => {
-    const fetchLibrarians = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await axios.get("http://localhost:8080/borrow/librarians", {
-          headers: {
-            Authorization: `${token}`,
-          },
-        });
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 });
+  const [totalCount, setTotalCount] = useState(0);
+  const token = localStorage.getItem("token");
 
-        const filtered = response.data.filter((lib) =>
-          lib.name.toLowerCase().includes("librarian")
-        );
+  const fetchLibrarians = async (page, limit) => {
+    try {
+      const response = await axios.get("http://localhost:8080/borrow/librarians", {
+        headers: { Authorization: token },
+        params: { page: page + 1, limit }, // backend is 1-indexed
+      });
 
-        const formatted = filtered.map((lib) => ({
-          id: lib.id,
-          name: lib.name,
-          email: lib.email,
-        }));
+      const data = response.data;
+      const formatted = data.librarians.map((lib) => ({
+        id: lib.id,
+        name: lib.name,
+        email: lib.email,
+      }));
 
-        setLibrarians(formatted);
-        setFilteredLibrarians(formatted);
-      } catch (error) {
-        console.error("Error fetching librarians:", error);
-        setSnackbar({ open: true, message: "Failed to load librarians", severity: "error" });
-      }
-    };
-
-    fetchLibrarians();
-  }, []);
-
-  useEffect(() => {
-    if (!searchTerm.trim()) {
-      setFilteredLibrarians(librarians);
-    } else {
-      const filtered = librarians.filter((librarian) =>
-        librarian.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        librarian.email.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredLibrarians(filtered);
+      setLibrarians(formatted);
+      setTotalCount(data.total);
+    } catch (error) {
+      console.error("Error fetching librarians:", error);
+      setSnackbar({ open: true, message: "Failed to load librarians", severity: "error" });
     }
-  }, [searchTerm, librarians]);
-
-  const handleSearchChange = (event) => {
-    setSearchTerm(event.target.value);
   };
 
-  const handleClearSearch = () => {
-    setSearchTerm("");
-  };
+  useEffect(() => {
+    fetchLibrarians(paginationModel.page, paginationModel.pageSize);
+  }, [paginationModel]);
 
-  // CSV Export Function
+  const handleSearchChange = (e) => setSearchTerm(e.target.value);
+  const handleClearSearch = () => setSearchTerm("");
+
   const handleExportCSV = () => {
     try {
-      // Define CSV headers
-      const headers = ['ID', 'Name', 'Email'];
-      
-      // Convert data to CSV format
-      const csvContent = [
-        headers.join(','), // Header row
-        ...filteredLibrarians.map(librarian => [
-          librarian.id,
-          `"${librarian.name}"`, // Wrap in quotes to handle commas in names
-          `"${librarian.email}"`  // Wrap in quotes to handle commas in emails
-        ].join(','))
-      ].join('\n');
+      const csv = [
+        ["ID", "Name", "Email"].join(","),
+        ...librarians.map(({ id, name, email }) => [id, `"${name}"`, `"${email}"`].join(",")),
+      ].join("\n");
 
-      // Create blob and download
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      
-      if (link.download !== undefined) {
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', `librarians_${new Date().toISOString().split('T')[0]}.csv`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `librarians_${new Date().toISOString().split("T")[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
 
-      setSnackbar({ 
-        open: true, 
-        message: `${filteredLibrarians.length} librarians exported successfully`, 
-        severity: "success" 
-      });
+      setSnackbar({ open: true, message: "CSV exported", severity: "success" });
     } catch (error) {
-      console.error("Error exporting CSV:", error);
-      setSnackbar({ 
-        open: true, 
-        message: "Failed to export CSV", 
-        severity: "error" 
-      });
+      console.error(error);
+      setSnackbar({ open: true, message: "Export failed", severity: "error" });
     }
   };
 
@@ -130,48 +104,33 @@ const ManageLibrarians = () => {
     setOpenDialog(true);
   };
 
-  const handleOpenEdit = (librarian) => {
-    setEditingLibrarian(librarian);
-    setFormData({ name: librarian.name, email: librarian.email, password: "", password_confirmation: "" });
+  const handleOpenEdit = (lib) => {
+    setEditingLibrarian(lib);
+    setFormData({ name: lib.name, email: lib.email, password: "", password_confirmation: "" });
     setOpenDialog(true);
   };
 
-  const handleDeleteClick = (librarian) => {
-    setDeleteDialog({ open: true, librarian });
-  };
+  const handleDeleteClick = (lib) => setDeleteDialog({ open: true, librarian: lib });
 
   const handleDeleteConfirm = async () => {
-    if (!deleteDialog.librarian) return;
     try {
-      const token = localStorage.getItem("token");
       await axios.delete(`http://localhost:3001/signup/${deleteDialog.librarian.id}`, {
-        headers: {
-          Authorization: `${token}`,
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
+        headers: { Authorization: token },
       });
-
-      setLibrarians((prev) => prev.filter((lib) => lib.id !== deleteDialog.librarian.id));
-      setSnackbar({ open: true, message: "Librarian deleted successfully", severity: "success" });
-      setDeleteDialog({ open: false, librarian: null });
+      setSnackbar({ open: true, message: "Deleted successfully", severity: "success" });
+      fetchLibrarians(paginationModel.page, paginationModel.pageSize);
     } catch (error) {
-      console.error("Error deleting librarian:", error);
-      const errorMsg =
-        error.response?.data?.errors?.join(", ") ||
-        error.response?.data?.message ||
-        "Failed to delete librarian";
-      setSnackbar({ open: true, message: errorMsg, severity: "error" });
+      setSnackbar({ open: true, message: "Delete failed", severity: "error" });
+    } finally {
       setDeleteDialog({ open: false, librarian: null });
     }
   };
-
-  const handleDeleteCancel = () => {
+   const handleDeleteCancel = () => {
     setDeleteDialog({ open: false, librarian: null });
   };
 
   const handleSubmit = async () => {
-    if (!formData.name || !formData.email || (!editingLibrarian && !formData.password)) {
+    if (!formData.name || !formData.email) {
       setSnackbar({ open: true, message: "Please fill all required fields", severity: "warning" });
       return;
     }
@@ -181,97 +140,51 @@ const ManageLibrarians = () => {
       return;
     }
 
-    const token = localStorage.getItem("token");
+    const userPayload = {
+      name: formData.name,
+      email: formData.email,
+      ...(formData.password && {
+        password: formData.password,
+        password_confirmation: formData.password_confirmation,
+      }),
+    };
 
-    if (editingLibrarian) {
-      try {
-        const response = await axios.put(
+    try {
+      if (editingLibrarian) {
+        await axios.put(
           `http://localhost:3001/signup/${editingLibrarian.id}`,
-          {
-            user: {
-              name: formData.name,
-              email: formData.email,
-              ...(formData.password && {
-                password: formData.password,
-                password_confirmation: formData.password_confirmation,
-              }),
-            },
-          },
-          {
-            headers: {
-              Authorization: `${token}`,
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            },
-          }
+          { user: userPayload },
+          { headers: { Authorization: token } }
         );
-
-        const updatedUser = response.data.user;
-        setLibrarians((prev) =>
-          prev.map((lib) =>
-            lib.id === editingLibrarian.id
-              ? { ...lib, name: updatedUser.name, email: updatedUser.email }
-              : lib
-          )
+        setSnackbar({ open: true, message: "Updated successfully", severity: "success" });
+      } else {
+        await axios.post(
+          `http://localhost:3001/signup`,
+          { user: { ...userPayload, role: 1 } },
+          { headers: { Authorization: token } }
         );
-        setSnackbar({ open: true, message: "Librarian updated successfully", severity: "success" });
-        setOpenDialog(false);
-      } catch (error) {
-        console.error("Error updating librarian:", error);
-        const errorMsg =
-          error.response?.data?.errors?.join(", ") ||
-          error.response?.data?.message ||
-          "Failed to update librarian";
-        setSnackbar({ open: true, message: errorMsg, severity: "error" });
+        setSnackbar({ open: true, message: "Added successfully", severity: "success" });
       }
-    } else {
-      try {
-        const response = await axios.post(
-          "http://localhost:3001/signup",
-          {
-            user: {
-              name: formData.name,
-              email: formData.email,
-              password: formData.password,
-              password_confirmation: formData.password_confirmation,
-              role: 1,
-            },
-          },
-          {
-            headers: {
-              Authorization: `${token}`,
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            },
-          }
-        );
 
-        const newUser = response.data.user;
-        setLibrarians((prev) => [
-          ...prev,
-          { id: newUser.id, name: newUser.name, email: newUser.email },
-        ]);
-        setSnackbar({ open: true, message: "Librarian added successfully", severity: "success" });
-        setOpenDialog(false);
-      } catch (error) {
-        console.error("Error adding librarian:", error);
-        const errorMsg =
-          error.response?.data?.errors?.join(", ") || "Failed to add librarian";
-        setSnackbar({ open: true, message: errorMsg, severity: "error" });
-      }
+      setOpenDialog(false);
+      fetchLibrarians(paginationModel.page, paginationModel.pageSize);
+    } catch (error) {
+      const msg =
+        error.response?.data?.errors?.join(", ") ||
+        error.response?.data?.message ||
+        "Failed to submit";
+      setSnackbar({ open: true, message: msg, severity: "error" });
     }
   };
 
   const columns = [
     { field: "id", headerName: "ID", width: 70 },
-    { field: "name", headerName: "Name", minWidth: 150, flex: 1 },
-    { field: "email", headerName: "Email", minWidth: 200, flex: 1 },
+    { field: "name", headerName: "Name", flex: 1 },
+    { field: "email", headerName: "Email", flex: 1 },
     {
       field: "actions",
       headerName: "Actions",
-      sortable: false,
-      filterable: false,
-      disableColumnMenu: true,
+      width: 130,
       renderCell: (params) => (
         <>
           <Tooltip title="Edit">
@@ -286,77 +199,58 @@ const ManageLibrarians = () => {
           </Tooltip>
         </>
       ),
-      width: 130,
     },
   ];
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h4" fontWeight={600} color="#3f51b5">
+      <Box display="flex" justifyContent="space-between" mb={2}>
+        <Typography variant="h4" color="primary" fontWeight={600}>
           Manage Librarians
         </Typography>
         <Box display="flex" gap={1}>
-          <Button
-            variant="outlined"
-            startIcon={<Download />}
-            onClick={handleExportCSV}
-            disabled={filteredLibrarians.length === 0}
-            sx={{ 
-              borderColor: "#3f51b5", 
-              color: "#3f51b5",
-              '&:hover': {
-                borderColor: "#3f51b5",
-                backgroundColor: "rgba(63, 81, 181, 0.04)"
-              }
-            }}
-          >
+          <Button variant="outlined" startIcon={<Download />} onClick={handleExportCSV}>
             Export CSV
           </Button>
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={handleOpenAdd}
-            sx={{ backgroundColor: "#3f51b5" }}
-          >
+          <Button variant="contained" startIcon={<Add />} onClick={handleOpenAdd}>
             Add Librarian
           </Button>
         </Box>
       </Box>
 
-      <Box mb={2}>
-        <TextField
-          fullWidth
-          variant="outlined"
-          placeholder="Search librarians by name or email..."
-          value={searchTerm}
-          onChange={handleSearchChange}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <Search color="action" />
-              </InputAdornment>
-            ),
-            endAdornment: searchTerm && (
-              <InputAdornment position="end">
-                <IconButton onClick={handleClearSearch} edge="end" size="small">
-                  <Clear />
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-        />
-      </Box>
+      <TextField
+        fullWidth
+        placeholder="Search librarians by name or email..."
+        value={searchTerm}
+        onChange={handleSearchChange}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <Search />
+            </InputAdornment>
+          ),
+          endAdornment: searchTerm && (
+            <InputAdornment position="end">
+              <IconButton onClick={handleClearSearch}>
+                <Clear />
+              </IconButton>
+            </InputAdornment>
+          ),
+        }}
+        sx={{ mb: 2 }}
+      />
 
       <DataGrid
-        rows={filteredLibrarians}
+        rows={librarians}
         columns={columns}
-        autoHeight
+        rowCount={totalCount}
+        loading={false}
+        pageSizeOptions={[5, 10, 20]}
+        paginationMode="server"
+        paginationModel={paginationModel}
+        onPaginationModelChange={setPaginationModel}
         disableRowSelectionOnClick
-        pagination
-        pageSize={10}
-        rowsPerPageOptions={[5, 10, 20]}
-        sx={{ backgroundColor: "#fff", borderRadius: 2 }}
+        autoHeight
       />
 
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth maxWidth="sm">

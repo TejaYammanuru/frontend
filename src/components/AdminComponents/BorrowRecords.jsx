@@ -1,29 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Box,
-  Typography,
-  CircularProgress,
-  Chip,
-  Card,
-  TextField,
-  InputAdornment,
-  IconButton,
-  Snackbar,
-  Alert,
-  Button,
-  Tooltip,
+  Box, Typography, CircularProgress, Chip, Card,
+  TextField, InputAdornment, IconButton, Snackbar,
+  Alert, Button, Tooltip
 } from '@mui/material';
-import { DataGrid, GridToolbar } from '@mui/x-data-grid';
+import { DataGrid } from '@mui/x-data-grid';
 import { Search, Clear, Download } from '@mui/icons-material';
 import axios from 'axios';
 import dayjs from 'dayjs';
 
 const BorrowRecords = () => {
   const [records, setRecords] = useState([]);
-  const [filteredRecords, setFilteredRecords] = useState([]);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: 10,
+  });
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
@@ -34,14 +28,17 @@ const BorrowRecords = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-
-      const response = await axios.get('http://localhost:8080/borrow/history', {
+      const response = await axios.get(`http://localhost:8080/borrow/history`, {
         headers: {
           Authorization: `${token}`,
         },
+        params: {
+          page: paginationModel.page + 1,
+          limit: paginationModel.pageSize,
+        },
       });
 
-      const data = response.data.map((record) => ({
+      const data = response.data.records.map((record) => ({
         id: record.id,
         bookTitle: record.book?.title || 'Unknown',
         memberName: record.user?.name || 'Unknown',
@@ -53,10 +50,9 @@ const BorrowRecords = () => {
       }));
 
       setRecords(data);
-      setFilteredRecords(data);
+      setTotalRecords(response.data.total);
     } catch (err) {
       console.error('Failed to fetch borrow history:', err);
-      setError('Failed to load borrow records');
       setSnackbar({
         open: true,
         message: 'Failed to load borrow records',
@@ -69,69 +65,45 @@ const BorrowRecords = () => {
 
   useEffect(() => {
     fetchBorrowHistory();
-  }, []);
+  }, [paginationModel]);
 
-  useEffect(() => {
-    if (!searchTerm.trim()) {
-      setFilteredRecords(records);
-    } else {
-      setFilteredRecords(
-        records.filter(
-          (rec) =>
-            rec.bookTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            rec.memberName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            rec.memberEmail.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      );
-    }
-  }, [searchTerm, records]);
-
-  // CSV Export Function
   const handleExportCSV = () => {
     try {
-      // Define CSV headers
       const headers = ['ID', 'Book Title', 'Member Name', 'Member Email', 'Borrowed At', 'Returned At'];
-      
-      // Convert data to CSV format
       const csvContent = [
-        headers.join(','), // Header row
-        ...filteredRecords.map(record => [
+        headers.join(','),
+        ...records.map((record) => [
           record.id,
-          `"${record.bookTitle.replace(/"/g, '""')}"`, // Escape quotes in book titles
-          `"${record.memberName.replace(/"/g, '""')}"`, // Escape quotes in names
+          `"${record.bookTitle}"`,
+          `"${record.memberName}"`,
           `"${record.memberEmail}"`,
           `"${record.borrowedAt}"`,
           `"${record.returnedAt || 'Not Returned'}"`
         ].join(','))
       ].join('\n');
 
-      // Add BOM for proper UTF-8 encoding
-      const BOM = '\uFEFF';
-      const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
-      
-      if (link.download !== undefined) {
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', `borrow_records_${new Date().toISOString().split('T')[0]}.csv`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-      }
+      const url = URL.createObjectURL(blob);
 
-      setSnackbar({ 
-        open: true, 
-        message: `${filteredRecords.length} records exported successfully`, 
-        severity: "success" 
+      link.setAttribute('href', url);
+      link.setAttribute('download', `borrow_records_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      setSnackbar({
+        open: true,
+        message: `${records.length} records exported successfully`,
+        severity: "success"
       });
     } catch (error) {
       console.error("Error exporting CSV:", error);
-      setSnackbar({ 
-        open: true, 
-        message: "Failed to export CSV", 
-        severity: "error" 
+      setSnackbar({
+        open: true,
+        message: "Failed to export CSV",
+        severity: "error"
       });
     }
   };
@@ -148,13 +120,9 @@ const BorrowRecords = () => {
       flex: 1,
       renderCell: (params) =>
         params.value ? (
-          <Typography sx={{ color: '#3F51B5', fontWeight: 600 }}>
-            {params.value}
-          </Typography>
+          <Typography sx={{ color: '#3F51B5', fontWeight: 600 }}>{params.value}</Typography>
         ) : (
-          <Typography sx={{ color: '#FF9800', fontWeight: 600 }}>
-            Not Returned
-          </Typography>
+          <Typography sx={{ color: '#FF9800', fontWeight: 600 }}>Not Returned</Typography>
         ),
     },
   ];
@@ -170,9 +138,9 @@ const BorrowRecords = () => {
             variant="outlined"
             startIcon={<Download />}
             onClick={handleExportCSV}
-            disabled={loading || filteredRecords.length === 0}
-            sx={{ 
-              borderColor: "#3F51B5", 
+            disabled={loading || records.length === 0}
+            sx={{
+              borderColor: "#3F51B5",
               color: "#3F51B5",
               '&:hover': {
                 borderColor: "#3F51B5",
@@ -184,7 +152,7 @@ const BorrowRecords = () => {
               }
             }}
           >
-            Export CSV 
+            Export CSV
           </Button>
         </Tooltip>
       </Box>
@@ -196,16 +164,10 @@ const BorrowRecords = () => {
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <Search sx={{ color: '#3F51B5' }} />
-            </InputAdornment>
-          ),
+          startAdornment: <InputAdornment position="start"><Search sx={{ color: '#3F51B5' }} /></InputAdornment>,
           endAdornment: searchTerm && (
             <InputAdornment position="end">
-              <IconButton onClick={() => setSearchTerm('')} size="small">
-                <Clear />
-              </IconButton>
+              <IconButton onClick={() => setSearchTerm('')} size="small"><Clear /></IconButton>
             </InputAdornment>
           ),
         }}
@@ -219,45 +181,26 @@ const BorrowRecords = () => {
       ) : (
         <Card sx={{ borderRadius: 2, boxShadow: 2 }}>
           <DataGrid
-            rows={filteredRecords}
+            rows={records.filter(
+              (rec) =>
+                rec.bookTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                rec.memberName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                rec.memberEmail.toLowerCase().includes(searchTerm.toLowerCase())
+            )}
             columns={columns}
             autoHeight
+            rowCount={totalRecords}
+            paginationMode="server"
+            paginationModel={paginationModel}
+            onPaginationModelChange={setPaginationModel}
+            pageSizeOptions={[5, 10, 25]}
             disableRowSelectionOnClick
-            slots={{ toolbar: GridToolbar }}
-            slotProps={{
-              toolbar: {
-                showQuickFilter: false,
-                csvOptions: {
-                  fileName: 'borrow_records',
-                  utf8WithBom: true,
-                  delimiter: ',',
-                },
-                printOptions: {
-                  hideFooter: true,
-                  hideToolbar: true,
-                },
-              },
-            }}
             sx={{
               border: 0,
-              '& .MuiDataGrid-cell': {
-                borderBottom: '1px solid #f0f0f0',
-              },
               '& .MuiDataGrid-columnHeaders': {
                 backgroundColor: '#f8f9fa',
                 fontWeight: 600,
                 color: '#3F51B5',
-              },
-              '& .MuiDataGrid-toolbarContainer': {
-                justifyContent: 'flex-end',
-                px: 2,
-                py: 1,
-              },
-            }}
-            pageSizeOptions={[5, 10, 25, 50]}
-            initialState={{
-              pagination: {
-                paginationModel: { pageSize: 10 },
               },
             }}
           />
