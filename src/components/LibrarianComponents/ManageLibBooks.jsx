@@ -52,10 +52,16 @@ const ManageLibBooks = () => {
 
   const [books, setBooks] = useState([]);
   const [filteredBooks, setFilteredBooks] = useState([]);
+  const [allBooks, setAllBooks] = useState([]); // For CSV export - stores all books
   const [searchTerm, setSearchTerm] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
   const [editingBook, setEditingBook] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: 10,
+  });
+  const [totalRows, setTotalRows] = useState(0);
   const [formData, setFormData] = useState({
     title: "",
     author: "",
@@ -74,12 +80,30 @@ const ManageLibBooks = () => {
     severity: "success"
   });
 
-  const fetchBooks = async () => {
+  const fetchBooks = async (page = 0, pageSize = 10) => {
     try {
       setLoading(true);
-      const response = await axios.get("http://localhost:8080/books/");
-      setBooks(response.data);
-      setFilteredBooks(response.data);
+      const response = await axios.get(`http://localhost:8080/books/`, {
+        params: {
+          page: page + 1, // Backend expects 1-based pagination
+          page_size: pageSize,
+        },
+      });
+      
+      setBooks(response.data.data || []);
+      setTotalRows(response.data.total || 0);
+      
+      // Apply search filter to the fetched data
+      if (!searchTerm.trim()) {
+        setFilteredBooks(response.data.data || []);
+      } else {
+        const filtered = (response.data.data || []).filter((book) =>
+          book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          book.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          book.genre.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        setFilteredBooks(filtered);
+      }
     } catch (error) {
       console.error("Error fetching books:", error);
       setSnackbar({
@@ -87,16 +111,40 @@ const ManageLibBooks = () => {
         message: "Failed to load books",
         severity: "error"
       });
+      setBooks([]);
+      setFilteredBooks([]);
+      setTotalRows(0);
     } finally {
       setLoading(false);
     }
   };
 
+  // Fetch all books for CSV export
+  const fetchAllBooks = async () => {
+    try {
+      const response = await axios.get(`http://localhost:8080/books/`, {
+        params: {
+          page: 1,
+          page_size: 1000, // Get a large number of books for export
+        },
+      });
+      setAllBooks(response.data.data || []);
+    } catch (error) {
+      console.error("Error fetching all books:", error);
+      setAllBooks([]);
+    }
+  };
+
   useEffect(() => {
-    fetchBooks();
+    fetchBooks(paginationModel.page, paginationModel.pageSize);
+  }, [paginationModel]);
+
+  useEffect(() => {
+    fetchAllBooks(); // Fetch all books once for CSV export
   }, []);
 
   useEffect(() => {
+    // Apply search filter when search term changes
     if (!searchTerm.trim()) {
       setFilteredBooks(books);
     } else {
@@ -110,9 +158,20 @@ const ManageLibBooks = () => {
     }
   }, [searchTerm, books]);
 
+  const handlePaginationModelChange = (newModel) => {
+    setPaginationModel(newModel);
+  };
+
   // CSV Export Function
   const exportToCSV = () => {
     try {
+      const booksToExport = searchTerm.trim() ? 
+        allBooks.filter((book) =>
+          book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          book.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          book.genre.toLowerCase().includes(searchTerm.toLowerCase())
+        ) : allBooks;
+
       // Define CSV headers
       const headers = [
         'ID',
@@ -128,7 +187,7 @@ const ManageLibBooks = () => {
       ];
 
       // Convert books data to CSV format
-      const csvData = filteredBooks.map(book => [
+      const csvData = booksToExport.map(book => [
         book.id,
         `"${book.title.replace(/"/g, '""')}"`, // Escape quotes in title
         `"${book.author.replace(/"/g, '""')}"`, // Escape quotes in author
@@ -162,7 +221,7 @@ const ManageLibBooks = () => {
 
       setSnackbar({
         open: true,
-        message: `Successfully exported ${filteredBooks.length} books to CSV`,
+        message: `Successfully exported ${booksToExport.length} books to CSV`,
         severity: "success"
       });
     } catch (error) {
@@ -226,7 +285,8 @@ const ManageLibBooks = () => {
           message: "Book deleted successfully",
           severity: "success"
         });
-        await fetchBooks();
+        await fetchBooks(paginationModel.page, paginationModel.pageSize);
+        await fetchAllBooks(); // Refresh all books for export
       } catch (error) {
         console.error("Error deleting book:", error);
         setSnackbar({
@@ -375,7 +435,8 @@ const ManageLibBooks = () => {
         });
       }
 
-      await fetchBooks();
+      await fetchBooks(paginationModel.page, paginationModel.pageSize);
+      await fetchAllBooks(); // Refresh all books for export
       handleCloseDialog();
     } catch (error) {
       console.error("Error saving book:", error);
@@ -530,7 +591,7 @@ const ManageLibBooks = () => {
             variant="outlined"
             startIcon={<FileDownload />}
             onClick={exportToCSV}
-            disabled={filteredBooks.length === 0}
+            disabled={allBooks.length === 0}
             sx={{
               color: PRIMARY_COLOR,
               borderColor: PRIMARY_COLOR,
@@ -593,6 +654,10 @@ const ManageLibBooks = () => {
           autoHeight
           loading={loading}
           disableRowSelectionOnClick
+          paginationMode="server"
+          rowCount={totalRows}
+          paginationModel={paginationModel}
+          onPaginationModelChange={handlePaginationModelChange}
           sx={{
             border: 0,
             "& .MuiDataGrid-cell": { borderBottom: "1px solid #f0f0f0" },
@@ -602,12 +667,7 @@ const ManageLibBooks = () => {
             },
           }}
           getRowId={(row) => row.id}
-          initialState={{
-            pagination: {
-              paginationModel: { pageSize: 10 },
-            },
-          }}
-          pageSizeOptions={[5, 10, 25]}
+          pageSizeOptions={[5, 10, 25, 50]}
         />
       </Card>
 
@@ -782,5 +842,6 @@ const ManageLibBooks = () => {
     </Box>
   );
 };
+
 
 export default ManageLibBooks;
