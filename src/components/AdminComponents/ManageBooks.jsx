@@ -43,7 +43,7 @@ const ManageBooks = () => {
 
   const [books, setBooks] = useState([]);
   const [filteredBooks, setFilteredBooks] = useState([]);
-  const [allBooks, setAllBooks] = useState([]); // For CSV export - stores all books
+  const [allBooks, setAllBooks] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
   const [editingBook, setEditingBook] = useState(null);
@@ -72,7 +72,7 @@ const ManageBooks = () => {
       setLoading(true);
       const response = await axios.get(`http://localhost:8080/books/`, {
         params: {
-          page: page + 1, // Backend expects 1-based pagination
+          page: page + 1, 
           page_size: pageSize,
         },
       });
@@ -80,7 +80,7 @@ const ManageBooks = () => {
       setBooks(response.data.data || []);
       setTotalRows(response.data.total || 0);
       
-      // Apply search filter to the fetched data
+      
       if (!searchTerm.trim()) {
         setFilteredBooks(response.data.data || []);
       } else {
@@ -102,13 +102,13 @@ const ManageBooks = () => {
     }
   };
 
-  // Fetch all books for CSV export
+  
   const fetchAllBooks = async () => {
     try {
       const response = await axios.get(`http://localhost:8080/books/`, {
         params: {
           page: 1,
-          page_size: 1000, // Get a large number of books for export
+          page_size: 1000, 
         },
       });
       setAllBooks(response.data.data || []);
@@ -123,11 +123,11 @@ const ManageBooks = () => {
   }, [paginationModel]);
 
   useEffect(() => {
-    fetchAllBooks(); // Fetch all books once for CSV export
+    fetchAllBooks(); 
   }, []);
 
   useEffect(() => {
-    // Apply search filter when search term changes
+    
     if (!searchTerm.trim()) {
       setFilteredBooks(books);
     } else {
@@ -145,7 +145,7 @@ const ManageBooks = () => {
     setPaginationModel(newModel);
   };
 
-  // CSV Export Function
+  
   const handleExportCSV = () => {
     try {
       const booksToExport = searchTerm.trim() ? 
@@ -155,22 +155,22 @@ const ManageBooks = () => {
           book.genre.toLowerCase().includes(searchTerm.toLowerCase())
         ) : allBooks;
 
-      // Define CSV headers
+     
       const headers = [
         'ID', 'Title', 'Author', 'Genre', 'Description', 
         'Publication Date', 'Total Copies', 'Available Copies', 
         'Return Period (Days)'
       ];
       
-      // Convert data to CSV format
+      
       const csvContent = [
-        headers.join(','), // Header row
+        headers.join(','), 
         ...booksToExport.map(book => [
           book.id,
-          `"${book.title.replace(/"/g, '""')}"`, // Escape quotes in title
-          `"${book.author.replace(/"/g, '""')}"`, // Escape quotes in author
+          `"${book.title.replace(/"/g, '""')}"`, 
+          `"${book.author.replace(/"/g, '""')}"`,
           `"${book.genre}"`,
-          `"${(book.description || '').replace(/"/g, '""')}"`, // Handle description
+          `"${(book.description || '').replace(/"/g, '""')}"`, 
           new Date(book.publication_date).toLocaleDateString(),
           book.total_copies,
           book.copies_available,
@@ -178,7 +178,7 @@ const ManageBooks = () => {
         ].join(','))
       ].join('\n');
 
-      // Create blob and download
+      
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       
@@ -226,7 +226,7 @@ const ManageBooks = () => {
 
   const handleEditBook = (book) => {
     const rawDate = new Date(book.publication_date);
-    const formattedDate = rawDate.toISOString().slice(0, 10); // yyyy-mm-dd
+    const formattedDate = rawDate.toISOString().slice(0, 10); 
 
     setEditingBook(book);
     setFormData({
@@ -257,7 +257,7 @@ const ManageBooks = () => {
         await axios.delete(`http://localhost:8080/books/${bookId}`, config);
         setSnackbar({ open: true, message: "Book deleted successfully", severity: "success" });
         await fetchBooks(paginationModel.page, paginationModel.pageSize);
-        await fetchAllBooks(); // Refresh all books for export
+        await fetchAllBooks(); 
       } catch (error) {
         console.error("Error deleting book:", error);
         setSnackbar({ open: true, message: "Failed to delete book", severity: "error" });
@@ -367,7 +367,7 @@ const ManageBooks = () => {
       }
 
       await fetchBooks(paginationModel.page, paginationModel.pageSize);
-      await fetchAllBooks(); // Refresh all books for export
+      await fetchAllBooks(); 
       handleCloseDialog();
     } catch (error) {
       console.error("Error saving book:", error);
